@@ -30,18 +30,19 @@ namespace Engine
 	};
 	extern CRhiDx12 *pd3d;
 
-	struct IDirect3DWindow
+	struct CDirect3DWindow
 	{
-		IDirect3DWindow() = default;
-		IDirect3DWindow(uint uWidth, uint uHeight, const char *sTitle) { this->Initialize(uWidth, uHeight, sTitle); }
+		CDirect3DWindow() = default;
+		CDirect3DWindow(uint uWidth, uint uHeight, const char *sTitle) { this->Initialize(uWidth, uHeight, sTitle); }
+
 		bool Initialize(uint uWidth, uint uHeight, const char *uTitle);
 		void Destroy();
+
 		inline bool ShouldClose() { return m_hWnd == NULL; }
 		inline bool InFocus() { return m_bInFocus; }
 
 		static LRESULT CALLBACK WndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam);
 
-		/* ----- Members ----- */
 	protected:
 		HWND m_hWnd;
 		uint m_uSize[2];

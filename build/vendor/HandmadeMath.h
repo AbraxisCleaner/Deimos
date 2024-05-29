@@ -221,6 +221,10 @@ extern "C"
 
 typedef union vec2
 {
+    vec2() : X(0), Y(0) {}
+    vec2(float X) : X(X), Y(0) {}
+    vec2(float X, float Y) : X(X), Y(Y) {}
+
     struct
     {
         float X, Y;
@@ -244,6 +248,8 @@ typedef union vec2
     float Elements[2];
 
 #ifdef __cplusplus
+    inline operator float *() { return Elements; }
+
     inline float &operator[](const int &Index)
     {
         return Elements[Index];
@@ -265,6 +271,9 @@ typedef union vec2
 
 typedef union vec3
 {
+    vec3() : Elements{} {}
+    vec3(float X, float Y = 0, float Z = 0) : Elements{X, Y, Z} {}
+
     struct
     {
         float X, Y, Z;
@@ -307,6 +316,8 @@ typedef union vec3
     float Elements[3];
 
 #ifdef __cplusplus
+    inline operator float *() { return Elements; }
+
     inline float &operator[](const int &Index)
     {
         return Elements[Index];
@@ -328,6 +339,9 @@ typedef union vec3
 
 typedef union vec4
 {
+    vec4() : Elements{ 0, 0, 0, 0 } {}
+    vec4(float X, float Y = 0, float Z = 0, float W = 0) : Elements{X, Y, Z, W} {}
+
     struct
     {
         union
@@ -383,6 +397,8 @@ typedef union vec4
 #endif
 
 #ifdef __cplusplus
+    inline operator float *() { return Elements; }
+
     inline float &operator[](const int &Index)
     {
         return Elements[Index];
@@ -392,6 +408,8 @@ typedef union vec4
 
 typedef union mat2
 {
+    mat2() : Columns{ vec2(1, 0), vec2(0, 1) } {}
+
     float Elements[2][2];
     vec2 Columns[2];
 
@@ -405,6 +423,8 @@ typedef union mat2
     
 typedef union mat3
 {
+    mat3() : Columns{ vec3(1, 0, 0), vec3(0, 1, 0), vec3(0, 0, 1) } {}
+
     float Elements[3][3];
     vec3 Columns[3];
 
@@ -418,6 +438,8 @@ typedef union mat3
 
 typedef union mat4
 {
+    mat4() : Columns{ vec4(1, 0, 0), vec4(0, 1, 0, 0), vec4(0, 0, 1, 0), vec4(0, 0, 0, 1) } {}
+
     float Elements[4][4];
     vec4 Columns[4];
 
@@ -431,6 +453,9 @@ typedef union mat4
 
 typedef union HMM_Quat
 {
+    HMM_Quat() : Elements{} {}
+    HMM_Quat(float X, float Y, float Z, float W) : Elements{ X, Y, Z, W } {}
+
     struct
     {
         union
@@ -1136,26 +1161,6 @@ static inline vec4 HMM_LinearCombineV4M4(vec4 Left, mat4 Right)
  * 2x2 Matrices
  */
 
-COVERAGE(HMM_M2, 1)
-static inline mat2 HMM_M2(void)
-{
-    ASSERT_COVERED(HMM_M2);
-    mat2 Result = {0};
-    return Result;
-}
-
-COVERAGE(HMM_M2D, 1)
-static inline mat2 HMM_M2D(float Diagonal)
-{
-    ASSERT_COVERED(HMM_M2D);
-    
-    mat2 Result = {0};
-    Result.Elements[0][0] = Diagonal;
-    Result.Elements[1][1] = Diagonal;
-
-    return Result;
-}
-
 COVERAGE(HMM_TransposeM2, 1)
 static inline mat2 HMM_TransposeM2(mat2 Matrix)
 {
@@ -1283,27 +1288,6 @@ static inline mat2 HMM_InvGeneralM2(mat2 Matrix)
 /*
  * 3x3 Matrices
  */
-
-COVERAGE(HMM_M3, 1)
-static inline mat3 HMM_M3(void)
-{
-    ASSERT_COVERED(HMM_M3);
-    mat3 Result = {0};
-    return Result;
-}
-
-COVERAGE(HMM_M3D, 1)
-static inline mat3 HMM_M3D(float Diagonal)
-{
-    ASSERT_COVERED(HMM_M3D);
-    
-    mat3 Result = {0};
-    Result.Elements[0][0] = Diagonal;
-    Result.Elements[1][1] = Diagonal;
-    Result.Elements[2][2] = Diagonal;
-
-    return Result;
-}
 
 COVERAGE(HMM_TransposeM3, 1)
 static inline mat3 HMM_TransposeM3(mat3 Matrix)
@@ -1473,28 +1457,6 @@ static inline mat3 HMM_InvGeneralM3(mat3 Matrix)
 /*
  * 4x4 Matrices
  */
-
-COVERAGE(HMM_M4, 1)
-static inline mat4 HMM_M4(void)
-{
-    ASSERT_COVERED(HMM_M4);
-    mat4 Result = {0};
-    return Result;
-}
-
-COVERAGE(HMM_M4D, 1)
-static inline mat4 HMM_M4D(float Diagonal)
-{
-    ASSERT_COVERED(HMM_M4D);
-
-    mat4 Result = {0};
-    Result.Elements[0][0] = Diagonal;
-    Result.Elements[1][1] = Diagonal;
-    Result.Elements[2][2] = Diagonal;
-    Result.Elements[3][3] = Diagonal;
-
-    return Result;
-}
 
 COVERAGE(HMM_TransposeM4, 1)
 static inline mat4 HMM_TransposeM4(mat4 Matrix)
@@ -1733,7 +1695,7 @@ static inline mat4 HMM_Orthographic_RH_NO(float Left, float Right, float Bottom,
 {
     ASSERT_COVERED(HMM_Orthographic_RH_NO);
 
-    mat4 Result = {0};
+    mat4 Result;
 
     Result.Elements[0][0] = 2.0f / (Right - Left);
     Result.Elements[1][1] = 2.0f / (Top - Bottom);
@@ -1755,7 +1717,7 @@ static inline mat4 HMM_Orthographic_RH_ZO(float Left, float Right, float Bottom,
 {
     ASSERT_COVERED(HMM_Orthographic_RH_ZO);
 
-    mat4 Result = {0};
+    mat4 Result;
 
     Result.Elements[0][0] = 2.0f / (Right - Left);
     Result.Elements[1][1] = 2.0f / (Top - Bottom);
@@ -1804,7 +1766,7 @@ static inline mat4 HMM_InvOrthographic(mat4 OrthoMatrix)
 {
     ASSERT_COVERED(HMM_InvOrthographic);
 
-    mat4 Result = {0};
+    mat4 Result;
     Result.Elements[0][0] = 1.0f / OrthoMatrix.Elements[0][0];
     Result.Elements[1][1] = 1.0f / OrthoMatrix.Elements[1][1];
     Result.Elements[2][2] = 1.0f / OrthoMatrix.Elements[2][2];
@@ -1822,7 +1784,7 @@ static inline mat4 HMM_Perspective_RH_NO(float FOV, float AspectRatio, float Nea
 {
     ASSERT_COVERED(HMM_Perspective_RH_NO);
 
-    mat4 Result = {0};
+    mat4 Result;
 
     // See https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
 
@@ -1842,7 +1804,7 @@ static inline mat4 HMM_Perspective_RH_ZO(float FOV, float AspectRatio, float Nea
 {
     ASSERT_COVERED(HMM_Perspective_RH_ZO);
 
-    mat4 Result = {0};
+    mat4 Result;
 
     // See https://www.khronos.org/registry/OpenGL-Refpages/gl2.1/xhtml/gluPerspective.xml
 
@@ -1886,7 +1848,7 @@ static inline mat4 HMM_InvPerspective_RH(mat4 PerspectiveMatrix)
 {
     ASSERT_COVERED(HMM_InvPerspective_RH);
 
-    mat4 Result = {0};
+    mat4 Result;
     Result.Elements[0][0] = 1.0f / PerspectiveMatrix.Elements[0][0];
     Result.Elements[1][1] = 1.0f / PerspectiveMatrix.Elements[1][1];
     Result.Elements[2][2] = 0.0f;
@@ -1903,7 +1865,7 @@ static inline mat4 HMM_InvPerspective_LH(mat4 PerspectiveMatrix)
 {
     ASSERT_COVERED(HMM_InvPerspective_LH);
 
-    mat4 Result = {0};
+    mat4 Result;
     Result.Elements[0][0] = 1.0f / PerspectiveMatrix.Elements[0][0];
     Result.Elements[1][1] = 1.0f / PerspectiveMatrix.Elements[1][1];
     Result.Elements[2][2] = 0.0f;
@@ -1920,7 +1882,7 @@ static inline mat4 HMM_Translate(vec3 Translation)
 {
     ASSERT_COVERED(HMM_Translate);
 
-    mat4 Result = HMM_M4D(1.0f);
+    mat4 Result;
     Result.Elements[3][0] = Translation.X;
     Result.Elements[3][1] = Translation.Y;
     Result.Elements[3][2] = Translation.Z;
@@ -1946,7 +1908,7 @@ static inline mat4 HMM_Rotate_RH(float Angle, vec3 Axis)
 {
     ASSERT_COVERED(HMM_Rotate_RH);
 
-    mat4 Result = HMM_M4D(1.0f);
+    mat4 Result;
 
     Axis = HMM_NormV3(Axis);
 
@@ -1996,7 +1958,7 @@ static inline mat4 HMM_Scale(vec3 Scale)
 {
     ASSERT_COVERED(HMM_Scale);
 
-    mat4 Result = HMM_M4D(1.0f);
+    mat4 Result;
     Result.Elements[0][0] = Scale.X;
     Result.Elements[1][1] = Scale.Y;
     Result.Elements[2][2] = Scale.Z;
@@ -2074,7 +2036,7 @@ static inline mat4 HMM_InvLookAt(mat4 Matrix)
     ASSERT_COVERED(HMM_InvLookAt);
     mat4 Result;
 
-    mat3 Rotation = {0};
+    mat3 Rotation;
     Rotation.Columns[0] = Matrix.Columns[0].XYZ;
     Rotation.Columns[1] = Matrix.Columns[1].XYZ;
     Rotation.Columns[2] = Matrix.Columns[2].XYZ;
@@ -2093,6 +2055,14 @@ static inline mat4 HMM_InvLookAt(mat4 Matrix)
     Result.Elements[3][3] = 1.0f;
 
     return Result;
+}
+
+static inline mat4 HMM_Transform(vec3 Position, vec3 Rotation, vec3 Scaling)
+{
+    mat4 Dst = HMM_Translate(Position);
+    Dst = HMM_MulM4(Dst, HMM_MulM4(HMM_Rotate_LH(Rotation[0], HMM_V3(1, 0, 0)), HMM_MulM4(HMM_Rotate_LH(Rotation[1], HMM_V3(0, 1, 0)), HMM_Rotate_LH(Rotation[2], HMM_V3(0, 0, 1)))));
+    Dst = HMM_MulM4(Dst, HMM_Scale(Scaling));
+    return Dst;
 }
 
 /*
@@ -2307,7 +2277,7 @@ static inline HMM_Quat HMM_NormQ(HMM_Quat Quat)
     /* NOTE(lcf): Take advantage of SSE implementation in HMM_NormV4 */
     vec4 Vec = {Quat.X, Quat.Y, Quat.Z, Quat.W};
     Vec = HMM_NormV4(Vec);
-    HMM_Quat Result = {Vec.X, Vec.Y, Vec.Z, Vec.W};
+    HMM_Quat Result(Vec.X, Vec.Y, Vec.Z, Vec.W);
 
     return Result;
 }

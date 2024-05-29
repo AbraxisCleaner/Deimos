@@ -18,10 +18,9 @@ namespace Engine
 		vec3 m_Scaling;
 	};
 
-	struct IEntity : public CTransform {
-		typedef CTransform Tf;
-
-		IEntity();
+	struct CEntity : public CTransform 
+	{
+		CEntity();
 
 		u32 m_uId;
 		TSizedString<64> m_Name;

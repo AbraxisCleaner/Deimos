@@ -42,7 +42,7 @@ Engine::CRhiDx12::CRhiDx12()
 	Wc.hInstance = ::GetModuleHandleW(NULL);
 	Wc.hCursor = ::LoadCursorW(Wc.hInstance, IDC_ARROW);
 	Wc.lpszClassName = L"IDirect3DWindow";
-	Wc.lpfnWndProc = IDirect3DWindow::WndProc;
+	Wc.lpfnWndProc = CDirect3DWindow::WndProc;
 	Wc.style = CS_VREDRAW | CS_HREDRAW;
 	ASSERT(RegisterClassExW(&Wc));
 }
@@ -78,7 +78,7 @@ void Engine::CRhiDx12::WaitForQueue()
 }
 
 /* --------------------------------------------------------------------------------------------------------- */
-bool Engine::IDirect3DWindow::Initialize(uint uWidth, uint uHeight, const char *sTitle)
+bool Engine::CDirect3DWindow::Initialize(uint uWidth, uint uHeight, const char *sTitle)
 {
 	::MONITORINFO Monitor = { sizeof(Monitor) };
 	::GetMonitorInfoA(::MonitorFromPoint({}, 1), &Monitor);
@@ -129,7 +129,7 @@ bool Engine::IDirect3DWindow::Initialize(uint uWidth, uint uHeight, const char *
 	return true;
 }
 
-void Engine::IDirect3DWindow::Destroy()
+void Engine::CDirect3DWindow::Destroy()
 {
 	pd3d->WaitForQueue();
 	m_pRtvHeap->Release();
@@ -140,9 +140,9 @@ void Engine::IDirect3DWindow::Destroy()
 	m_hWnd = NULL;
 }
 
-LRESULT CALLBACK Engine::IDirect3DWindow::WndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
+LRESULT CALLBACK Engine::CDirect3DWindow::WndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
 {
-	IDirect3DWindow *pWnd = (IDirect3DWindow *)::GetWindowLongPtrA(hwnd, GWLP_USERDATA);
+	CDirect3DWindow*pWnd = (CDirect3DWindow*)::GetWindowLongPtrA(hwnd, GWLP_USERDATA);
 	if (pWnd) {
 		switch (umsg) {
 		case WM_CLOSE: {
