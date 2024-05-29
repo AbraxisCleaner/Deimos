@@ -26,6 +26,20 @@
 #else
 #endif
 
+#define LSTR(x) L ## x
+#if !defined(XBR_FORCE_MBC)
+#	define STR(x) LSTR(x)
+//	For Windows
+#	define UNICODE
+#	define _UNICODE
+//	~~~~~~~~~~~
+typedef const wchar_t *str_t;
+#else
+#	define STR(x) x
+#	define MBCS
+typedef const char *str_t;
+#endif
+
 typedef unsigned int uint;
 typedef unsigned char uchar;
 
@@ -45,8 +59,5 @@ typedef s64 b64;
 typedef s32 b32;
 typedef s16 b16;
 typedef s8 b8;
-
-typedef const char *cstr_t;
-typedef const wchar_t *wstr_t;
 
 #endif // _PCH_H_
