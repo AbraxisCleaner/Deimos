@@ -38,7 +38,7 @@ template <> struct TString<char>
 		}
 	}
 
-	void Clear()
+	void Free()
 	{
 		if (m_Ptr != "") {
 			free(m_Ptr);
@@ -181,7 +181,7 @@ template <> struct TString<wchar_t>
 		}
 	}
 
-	void Clear()
+	void Free()
 	{
 		if (m_Ptr != L"") {
 			free(m_Ptr);

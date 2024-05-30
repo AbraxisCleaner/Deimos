@@ -37,7 +37,7 @@ bool Engine::WriteEntireFile(str_t Path, void *pBuffer, size_t BufferSize)
 
 /* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 /* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
-Engine::IFileHandle::IFileHandle() 
+Engine::IFileHandle::IFileHandle() : m_Name()
 {
     m_Handle = (void *)(intptr_t)-1;
     m_Size = 0;
@@ -47,7 +47,7 @@ Engine::IFileHandle::IFileHandle()
 
 Engine::IFileHandle::IFileHandle(str_t Path, EFileOpen OpenMode, EFileShare ShareMode)
 {
-    m_Handle = (void *)::CreateFileW(Path, GENERIC_READ | GENERIC_WRITE, ShareMode, NULL, OPEN_EXISTING, 128, NULL);
+    m_Handle = (void *)::CreateFile(Path, GENERIC_READ | GENERIC_WRITE, ShareMode, NULL, OPEN_EXISTING, 128, NULL);
     if ((intptr_t)m_Handle != (intptr_t)-1) {
         LARGE_INTEGER Li;
         ::GetFileSizeEx(m_Handle, &Li);
@@ -58,6 +58,7 @@ Engine::IFileHandle::IFileHandle(str_t Path, EFileOpen OpenMode, EFileShare Shar
         m_LastWrite = (size_t)Ft.dwHighDateTime << 32 | Ft.dwLowDateTime;
 
         m_ShareMode = ShareMode;
+        m_Name.Set(Path);
         LOGF("Opened file handle: %s\n", Path);
     }
     else {
@@ -79,6 +80,7 @@ void Engine::IFileHandle::Close()
 {
 	::CloseHandle(m_Handle);
 	m_Handle = (void *)(intptr_t)-1;
+    m_Name.Free();
 	m_Size = 0;
 	m_LastWrite = 0;
 	m_ShareMode = (EFileShare)0;
@@ -93,7 +95,7 @@ bool Engine::IFileHandle::IsDirty()
 
 /* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 /* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
-Engine::IMappedFile::IMappedFile()
+Engine::IMappedFile::IMappedFile() : m_Name()
 {
     m_Handle = (void *)(intptr_t)-1;
     m_pView = NULL;
@@ -102,13 +104,13 @@ Engine::IMappedFile::IMappedFile()
 
 Engine::IMappedFile::IMappedFile(str_t Path)
 {
-    m_Handle = (void *)::CreateFileW(Path, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_EXISTING, 128, NULL);
+    m_Handle = (void *)::CreateFile(Path, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_EXISTING, 128, NULL);
     if ((intptr_t)m_Handle != (intptr_t)-1) {
         LARGE_INTEGER Li;
         ::GetFileSizeEx(m_Handle, &Li);
         m_Size = Li.QuadPart;
 
-        HANDLE Mapping = ::CreateFileMappingW(m_Handle, NULL, PAGE_READWRITE, 0, 0, Path);
+        HANDLE Mapping = ::CreateFileMapping(m_Handle, NULL, PAGE_READWRITE, 0, 0, Path);
         m_pView = ::MapViewOfFile(Mapping, FILE_MAP_WRITE, 0, 0, m_Size);
         
         m_Name.Set(Path);
@@ -128,11 +130,12 @@ Engine::IMappedFile::~IMappedFile()
 
 void Engine::IMappedFile::Close()
 {
-	HANDLE Mapping = ::CreateFileMappingW(m_Handle, NULL, PAGE_READWRITE, 0, 0, m_Name);
+	HANDLE Mapping = ::CreateFileMapping(m_Handle, NULL, PAGE_READWRITE, 0, 0, m_Name);
 	::UnmapViewOfFile(m_pView);
 	::CloseHandle(Mapping);
     ::CloseHandle(m_Handle);
     m_Handle = (void *)(intptr_t)-1;
+    m_Name.Free();
     m_pView = NULL;
     m_Size = 0;
 }

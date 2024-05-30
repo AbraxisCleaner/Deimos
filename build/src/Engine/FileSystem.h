@@ -37,6 +37,7 @@ namespace Engine
 
     private:
         void *m_Handle;
+        TString<TCHAR> m_Name;
         EFileShare m_ShareMode;
         size_t m_Size;
         size_t m_LastWrite;
