@@ -3,54 +3,35 @@
 
 #include <pch.h>
 
-#include <Windows.h>
 #include <dxgi1_4.h>
 #include <d3d12.h>
 
-namespace Engine
+namespace Engine::Rhi
 {
-	struct CRhiDx12
-	{
-		CRhiDx12();
-		~CRhiDx12();
+    class IRhiD3D12 {
+        IDXGIFactory2 *m_pDxgiFactory;
+        IDXGIAdapter1 *m_pDxgiAdapter;
+        ID3D12Device *m_pDevice;
+        ID3D12CommandQueue *m_pCmdQueue;
+        ID3D12Fence *m_pFence;
+        HANDLE m_FenceEvent;
+        uint m_FenceValue;
+        uint m_RtvDescriptorSize;
+        uint m_GenericDescriptorSize;
+        ID3D12CommandAllocator *m_pCmdAllocator;
+        ID3D12GraphicsCommandList *m_pCmd;
 
-		void WaitForQueue();
+    public:
+        bool Initialize();
+        void Release();
+        
+        void NewFrame();
+        void EndFrame();
 
-		IDXGIFactory2 *pDxgiFactory;
-		IDXGIAdapter1 *pDxgiAdapter;
-		ID3D12Device *pDevice;
-		ID3D12CommandQueue *pCmdQueue;
-		ID3D12Fence *pCmdFence;
-		HANDLE CmdFenceEvent;
-		uint CmdFenceValue;
-		ID3D12CommandAllocator *pCmdAllocator;
-		ID3D12GraphicsCommandList *pCmdList;
-		uint RtvSize;
-		uint GenericViewSize;
-	};
-	extern CRhiDx12 *pd3d;
+        void WaitForDrawing();
 
-	struct CDirect3DWindow
-	{
-		CDirect3DWindow() = default;
-		CDirect3DWindow(uint uWidth, uint uHeight, const char *sTitle) { this->Initialize(uWidth, uHeight, sTitle); }
-
-		bool Initialize(uint uWidth, uint uHeight, const char *uTitle);
-		void Destroy();
-
-		inline bool ShouldClose() { return m_hWnd == NULL; }
-		inline bool InFocus() { return m_bInFocus; }
-
-		static LRESULT CALLBACK WndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam);
-
-	protected:
-		HWND m_hWnd;
-		uint m_uSize[2];
-		bool m_bInFocus;
-		IDXGISwapChain3 *m_pSwapChain;
-		ID3D12Resource *m_pSwapChainImages[2];
-		ID3D12DescriptorHeap *m_pRtvHeap;
-	};
+        inline ID3D12GraphicsCommandList *GetCommandList() { return m_pCmd; }
+    };
 }
 
 #endif // _ENGINE_RHI_DX12_H_

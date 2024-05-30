@@ -75,6 +75,9 @@ struct TArray
 		return pDst;
 	}
 
+	T *begin() { return m_pElements; }
+	T *end() { return &m_pElements[m_uCount]; }
+
 	inline T *GetPtr() { return m_pElements; }
 	inline uint GetCapacity() { return m_uCap; }
 	inline uint Getcount() { return m_uCount; }

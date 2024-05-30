@@ -30,8 +30,8 @@
 #if !defined(XBR_FORCE_MBC)
 #	define STR(x) LSTR(x)
 //	For Windows
-#	define UNICODE
-#	define _UNICODE
+//#	define UNICODE
+//#	define _UNICODE
 //	~~~~~~~~~~~
 typedef const wchar_t *str_t;
 #else
