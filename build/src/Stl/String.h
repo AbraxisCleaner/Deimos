@@ -3,217 +3,333 @@
 
 #include <pch.h>
 
-/* -------------------------------------------------------------------------------------------------------------- */
-template <uint _Cap>
-struct TSizedString
+/* --------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
+template <typename T> struct TString;
+
+template <> struct TString<char> 
 {
-	TSizedString()
-	{
-		memset(m_Ptr, 0, _Cap);
-		m_uLength = 0;
-	}
-	
-	TSizedString(const char *Ptr)
-	{
-		m_uLength = (uint)strlen(Ptr);
-		memset(m_Ptr, 0, _Cap);
-		memcpy(m_Ptr, Ptr, m_uLength);
-	}
-
-	TSizedString(const char *Ptr, uint uLength)
-	{
-		memset(m_Ptr, 0, _Cap);
-		memcpy(m_Ptr, Ptr, uLength);
-		m_uLength = uLength;
-	}
-
-	void Clear()
-	{
-		memset(m_Ptr, 0, _Cap);
-		m_uLength = 0;
-	}
-
-	char *Set(const char *Ptr, uint uLength)
-	{
-		memcpy(m_Ptr, 0, _Cap);
-		memcpy(m_Ptr, Ptr, uLength);
-		m_uLength = uLength;
-	}
-	inline char *Set(const char *Ptr) { return Set(Ptr, (uint)strlen(Ptr)); }
-
-	char *Append(const char *Ptr, uint uLength)
-	{
-		auto toCopy = uLength;
-		auto t = m_uLength + toCopy;
-		if (t >= _Cap) {
-			toCopy = _Cap - 1 - m_uLength;
-			t = _Cap - 1;
-		}
-
-		auto dst = &m_Ptr[m_uLength];
-		memcpy(dst, Ptr, toCopy);
-		m_uLength = t;
-		return dst;
-	}
-	inline char *Append(const char *Ptr) { return Append(Ptr, (uint)strlen(Ptr)); }
-
-	char *Find(const char Ch)
-	{
-		auto c = m_Ptr;
-		while (c) {
-			if (*c == Ch)
-				return c;
-			++c;
-		}
-		return NULL;
-	}
-
-	char *FindLast(const char Ch)
-	{
-		auto c = &m_Ptr[m_uLength];
-		while (c != m_Ptr) {
-			if (*c == Ch)
-				return c;
-			--c;
-		}
-		return NULL;
-	}
-
-	operator const char *() { return (const char *)m_Ptr; }
-	operator char *() { return m_Ptr; }
-
-	inline uint Length() { return m_uLength; }
-	inline char *Get() { return m_Ptr; }
-
-private:
-	char m_Ptr[_Cap];
-	uint m_uLength;
-};
-
-/* -------------------------------------------------------------------------------------------------------------- */
-struct String
-{
-	String()
+	TString() 
 	{
 		m_Ptr = "";
-		m_uLength = 0;
 		m_uCap = 0;
+		m_uLength = 0;
 	}
-
-	String(const char *Ptr, uint Length)
+	TString(const char *Ptr, uint Length) 
 	{
-		m_uLength = Length;
 		m_uCap = ALIGN16(Length);
+		m_uLength = Length;
 		m_Ptr = (char *)malloc(m_uCap);
 		memset(m_Ptr, 0, m_uCap);
 		memcpy(m_Ptr, Ptr, m_uLength);
 	}
-	String(const char *Ptr) : String(Ptr, (uint)strlen(Ptr)) {}
-
-	~String()
+	TString(const char *Ptr) 
+	{
+		m_uLength = (uint)strlen(Ptr);
+		m_uCap = ALIGN16(m_uLength);
+		m_Ptr = (char *)malloc(m_uCap);
+		memset(m_Ptr, 0, m_uCap);
+		memcpy(m_Ptr, Ptr, m_uLength);
+	}
+	~TString()
 	{
 		if (m_Ptr != "") {
-			Clear();
+			free(m_Ptr);
 		}
 	}
 
 	void Clear()
 	{
-		free(m_Ptr);
-		m_Ptr = "";
-		m_uLength = 0;
-		m_uCap = 0;
+		if (m_Ptr != "") {
+			free(m_Ptr);
+			m_Ptr = "";
+			m_uCap = 0;
+			m_uLength = 0;
+		}
 	}
 
 	char *Set(const char *Ptr, uint Length)
 	{
-		if (m_Ptr != "")
-			free(m_Ptr);
-		m_uLength = Length;
 		m_uCap = ALIGN16(Length);
-		m_Ptr = (char *)malloc(m_uCap);
+		m_uLength = Length;
+		if (m_Ptr != "") {
+			m_Ptr = (char *)realloc(m_Ptr, m_uCap);
+		}
 		memset(m_Ptr, 0, m_uCap);
-		memcpy(m_Ptr, Ptr, Length);
-		return m_Ptr;
+		memcpy(m_Ptr, Ptr, m_uLength);
 	}
-	char *Set(const char *Ptr) { return Set(Ptr, (uint)strlen(Ptr)); }
+	inline char *Set(const char *Ptr) { return this->Set(Ptr, (uint)strlen(Ptr)); }
 
 	char *Append(const char *Ptr, uint Length)
 	{
-		char *pDst = nullptr;
-		if (m_Ptr != "") {
+		if (m_Ptr) {
 			auto t = m_uLength + Length;
-			if (t > m_uCap) {
-				auto oldCap = m_uCap;
-				m_uCap = ALIGN16(t);
+			if (t >= m_uCap) {
+				auto OldCap = m_uCap;
+				m_uCap = ALIGN16(t + 1);
 				m_Ptr = (char *)realloc(m_Ptr, m_uCap);
-				memset(&m_Ptr[oldCap], 0, (m_uCap - oldCap));
+				memset(&m_Ptr[OldCap], 0, m_uCap - OldCap);
 			}
-			pDst = &m_Ptr[m_uLength];
+			auto pDst = &m_Ptr[m_uLength];
+			memcpy(pDst, Ptr, Length);
 			m_uLength = t;
+			return pDst;
 		}
-		else {
-			m_uLength = Length;
-			m_uCap = ALIGN16(Length);
-			m_Ptr = (char *)malloc(m_uCap);
-			memset(m_Ptr, 0, m_uCap);
-			pDst = m_Ptr;
-		}
-		memcpy(pDst, Ptr, Length);
-		return pDst;
+		// else
+		return this->Set(Ptr, Length);
 	}
-	char *Append(const char *Ptr) { return Append(Ptr, (uint)strlen(Ptr)); }
+	inline char *Append(const char *Ptr) { return this->Append(Ptr, (uint)strlen(Ptr)); }
 
-	char *Find(const char Ch)
+	char *Prepend(const char *Ptr, uint Length)
 	{
-		auto c = m_Ptr;
-		while (c) {
+		if (m_Ptr) {
+			auto t = m_uLength + Length;
+			if (t >= m_uCap) {
+				auto OldCap = m_uCap;
+				m_uCap = ALIGN16(t + 1);
+				m_Ptr = (char *)realloc(m_Ptr, m_uCap);
+				memset(&m_Ptr[OldCap], 0, m_uCap - OldCap);
+			}
+			memcpy(&m_Ptr[Length], m_Ptr, m_uLength);
+			memcpy(m_Ptr, Ptr, Length);
+			m_uLength = t;
+			return m_Ptr;
+		}
+		// else
+		return this->Set(Ptr, Length);
+	}
+	inline char *Prepend(const char *Ptr) { return this->Prepend(Ptr, (uint)strlen(Ptr)); }
+
+	char *Insert(const char *Ptr, uint Length, uint Where)
+	{
+		if (m_Ptr) {
+			if (Where > m_uLength)
+				return this->Append(Ptr, Length);
+
+			auto t = m_uLength + Length;
+
+			if (t >= m_uCap) {
+				auto OldCap = m_uCap;
+				m_uCap = ALIGN16(t + 1);
+				m_Ptr = (char *)realloc(m_Ptr, m_uCap);
+				memset(&m_Ptr[OldCap], 0, m_uCap - OldCap);
+			}
+
+			memcpy(&m_Ptr[Where + Length], &m_Ptr[Where], m_uLength - Where);
+			memcpy(&m_Ptr[Where], Ptr, Length);
+			m_uLength = t;
+			return &m_Ptr[Where];
+		}
+		// else
+		return this->Set(Ptr, Length);
+	}
+	inline char *Prepend(const char *Ptr, uint Where) { return this->Insert(Ptr, (uint)strlen(Ptr), Where); }
+
+	inline char *Find(const char Ch) 
+	{
+		for (auto c = m_Ptr; *c; ++c)
 			if (*c == Ch)
 				return c;
-			++c;
-		}
+		return NULL;
+	}
+	inline char *FindLast(const char Ch)
+	{
+		for (auto c = &m_Ptr[m_uLength]; c != m_Ptr; --c)
+			if (*c == Ch)
+				return c;
 		return NULL;
 	}
 
-	char *FindLast(const char Ch)
-	{
-		auto c = &m_Ptr[m_uLength];
-		while (c != m_Ptr) {
-			if (*c == Ch)
-				return c;
-			--c;
-		}
-		return NULL;
-	}
-
-	inline operator const char *() { return m_Ptr; }
-	inline char &operator [](uint it) { return m_Ptr[it]; }
+	inline operator char *() { return m_Ptr; }
+	inline char &operator [](uint Index) { return m_Ptr[Index]; }
 	inline operator void *() { return m_Ptr; }
 
 private:
 	char *m_Ptr;
+	uint m_uLength; 
+	uint m_uCap;
+};
+
+template <> struct TString<wchar_t>
+{
+	TString()
+	{
+		m_Ptr = L"";
+		m_uCap = 0;
+		m_uLength = 0;
+	}
+	TString(const wchar_t *Ptr, uint Length)
+	{
+		m_uCap = ALIGN16(Length);
+		m_uLength = Length;
+		m_Ptr = (wchar_t *)malloc(m_uCap);
+		memset(m_Ptr, 0, m_uCap);
+		memcpy(m_Ptr, Ptr, m_uLength);
+	}
+	TString(const wchar_t *Ptr)
+	{
+		m_uLength = (uint)wcslen(Ptr);
+		m_uCap = ALIGN16(m_uLength);
+		m_Ptr = (wchar_t *)malloc(m_uCap);
+		memset(m_Ptr, 0, m_uCap);
+		memcpy(m_Ptr, Ptr, m_uLength);
+	}
+	~TString()
+	{
+		if (m_Ptr != L"") {
+			free(m_Ptr);
+		}
+	}
+
+	void Clear()
+	{
+		if (m_Ptr != L"") {
+			free(m_Ptr);
+			m_Ptr = L"";
+			m_uCap = 0;
+			m_uLength = 0;
+		}
+	}
+
+	wchar_t *Set(const wchar_t *Ptr, uint Length)
+	{
+		m_uCap = ALIGN16(Length);
+		m_uLength = Length;
+		if (m_Ptr != L"") {
+			m_Ptr = (wchar_t *)realloc(m_Ptr, m_uCap * sizeof(wchar_t));
+		}
+		memset(m_Ptr, 0, m_uCap);
+		memcpy(m_Ptr, Ptr, m_uLength);
+	}
+	inline wchar_t *Set(const wchar_t *Ptr) { return this->Set(Ptr, (uint)wcslen(Ptr)); }
+
+	wchar_t *Append(const wchar_t *Ptr, uint Length)
+	{
+		if (m_Ptr) {
+			auto t = m_uLength + Length;
+			if (t >= m_uCap) {
+				auto OldCap = m_uCap;
+				m_uCap = ALIGN16(t + 1);
+				m_Ptr = (wchar_t *)realloc(m_Ptr, m_uCap * sizeof(wchar_t));
+				memset(&m_Ptr[OldCap], 0, m_uCap - OldCap);
+			}
+			auto pDst = &m_Ptr[m_uLength];
+			memcpy(pDst, Ptr, Length);
+			m_uLength = t;
+			return pDst;
+		}
+		// else
+		return this->Set(Ptr, Length);
+	}
+	inline wchar_t *Append(const wchar_t *Ptr) { return this->Append(Ptr, (uint)wcslen(Ptr)); }
+
+	wchar_t *Prepend(const wchar_t *Ptr, uint Length)
+	{
+		if (m_Ptr) {
+			auto t = m_uLength + Length;
+			if (t >= m_uCap) {
+				auto OldCap = m_uCap;
+				m_uCap = ALIGN16(t + 1);
+				m_Ptr = (wchar_t *)realloc(m_Ptr, m_uCap * sizeof(wchar_t));
+				memset(&m_Ptr[OldCap], 0, m_uCap - OldCap);
+			}
+			memcpy(&m_Ptr[Length], m_Ptr, m_uLength);
+			memcpy(m_Ptr, Ptr, Length);
+			m_uLength = t;
+			return m_Ptr;
+		}
+		// else
+		return this->Set(Ptr, Length);
+	}
+	inline wchar_t *Prepend(const wchar_t *Ptr) { return this->Prepend(Ptr, (uint)wcslen(Ptr)); }
+
+	wchar_t *Insert(const wchar_t *Ptr, uint Length, uint Where)
+	{
+		if (m_Ptr) {
+			if (Where > m_uLength)
+				return this->Append(Ptr, Length);
+
+			auto t = m_uLength + Length;
+
+			if (t >= m_uCap) {
+				auto OldCap = m_uCap;
+				m_uCap = ALIGN16(t + 1);
+				m_Ptr = (wchar_t *)realloc(m_Ptr, m_uCap * sizeof(wchar_t));
+				memset(&m_Ptr[OldCap], 0, m_uCap - OldCap);
+			}
+
+			memcpy(&m_Ptr[Where + Length], &m_Ptr[Where], m_uLength - Where);
+			memcpy(&m_Ptr[Where], Ptr, Length);
+			m_uLength = t;
+			return &m_Ptr[Where];
+		}
+		// else
+		return this->Set(Ptr, Length);
+	}
+	inline wchar_t *Prepend(const wchar_t *Ptr, uint Where) { return this->Insert(Ptr, (uint)wcslen(Ptr), Where); }
+
+	inline wchar_t *Find(const wchar_t Ch)
+	{
+		for (auto c = m_Ptr; *c; ++c)
+			if (*c == Ch)
+				return c;
+		return NULL;
+	}
+	inline wchar_t *FindLast(const wchar_t Ch)
+	{
+		for (wchar_t *c = &m_Ptr[m_uLength]; c != m_Ptr; --c)
+			if (*c == Ch)
+				return c;
+		return NULL;
+	}
+
+	inline operator wchar_t *() { return m_Ptr; }
+	inline wchar_t &operator [](uint Index) { return m_Ptr[Index]; }
+	inline operator wchar_t *() { return m_Ptr; }
+
+private:
+	wchar_t *m_Ptr;
 	uint m_uLength;
 	uint m_uCap;
 };
 
-/* -------------------------------------------------------------------------------------------------------------- */
-struct ConstString
-{
-	ConstString() { m_Ptr = ""; m_uLength = 0; }
-	ConstString(const char *Ptr) { m_Ptr = Ptr; m_uLength = (uint)strlen(Ptr); }
-	ConstString(const char *Ptr, uint Length) { m_Ptr = Ptr; m_uLength = Length; }
+template <typename T> struct TStaticString;
 
-	void Set(const char *Ptr, uint Length)
+template <> struct TStaticString<char> {
+	TStaticString()
+	{
+		m_Ptr = "";
+		m_uLength = 0;
+	}
+	TStaticString(const char *Ptr, uint Length) 
 	{
 		m_Ptr = Ptr;
 		m_uLength = Length;
 	}
-	inline void Set(const char *Ptr) { this->Set(Ptr, (uint)strlen(Ptr)); }
+	TStaticString(const char *Ptr) 
+	{
+		m_Ptr = Ptr;
+		m_uLength = (uint)strlen(Ptr);
+	}
 
+	inline const char *Find(const char Ch)
+	{
+		for (auto c = m_Ptr; *c; ++c)
+			if (*c == Ch)
+				return c;
+		return NULL;
+	}
+	inline const char *FindLast(const char Ch)
+	{
+		for (auto c = &m_Ptr[m_uLength]; c != m_Ptr; --c)
+			if (*c == Ch)
+				return c;
+		return NULL;
+	}
+
+	inline const char &operator [](uint Index) { return m_Ptr[Index]; }
 	inline operator const char *() { return m_Ptr; }
-	inline const char &operator [](uint it) { return m_Ptr[it]; }
-
-	inline void operator =(const char *Ptr) { Set(Ptr); }
+	inline operator const void *() { return m_Ptr; }
 
 private:
 	const char *m_Ptr;
