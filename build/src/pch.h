@@ -21,7 +21,7 @@
 
 #define IS_NUMBER(c) (c >= 0 && c <= 9)
 #define IS_LETTER(c) ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
-#define IS_WHITESPACE(C) (c == ' ' || c == '\t' || c == '\n' || c == '\r')
+#define IS_WHITESPACE(c) (c == ' ' || c == '\t' || c == '\n' || c == '\r')
 
 #if defined(_MSC_VER)
 #define DLLEXPORT __declspec(dllexport)
@@ -40,6 +40,7 @@ typedef const wchar_t *str_t;
 #	define MBCS
 typedef const char *str_t;
 #endif
+#define _TCHAR_DEFINED
 
 typedef unsigned int uint;
 typedef unsigned char uchar;
@@ -60,11 +61,3 @@ typedef s64 b64;
 typedef s32 b32;
 typedef s16 b16;
 typedef s8 b8;
-
-template <typename T> uint StrLen(const T *Str);
-template <> uint StrLen<char>(const char *Str) { return (uint)strlen(Str); }
-template <> uint StrLen<wchar_t>(const wchar_t *Str) { return (uint)wcslen(Str); }
-
-template <typename T> bool StrCmp(const T *Left, const T *Right);
-template <> bool StrCmp<char>(const char *Left, const char *Right) { return !strcmp(Left, Right); }
-template <> bool StrCmp<wchar_t>(const wchar_t *Left, const wchar_t *Right) { return !wcscmp(Left, Right); }

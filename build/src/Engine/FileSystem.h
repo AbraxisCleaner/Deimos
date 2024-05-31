@@ -6,7 +6,7 @@
 
 namespace Engine
 {
-    bool ReadEntireFile(str_t Path, size_t *pOutSize);
+    void *ReadEntireFile(str_t Path, size_t *pOutSize, void *(*pMallocFunc)(size_t Size));
     bool WriteEntireFile(str_t Path, void *pBuffer, size_t BufferSize);
 
     enum EFileShare

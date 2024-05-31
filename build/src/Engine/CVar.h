@@ -5,30 +5,20 @@
 
 namespace Engine 
 {
+	template <typename T> 
 	struct CVar
 	{
 		CVar() = delete;
-		explicit CVar(const char *sName, const char *sValue) { m_sName = sName; m_sValue = sValue; }
-		explicit CVar(const char *sName, int iValue) { m_sName = sName; m_iValue = iValue; }
-		explicit CVar(const char *sName, float fValue) { m_sName = sName; m_fValue = fValue; }
-		explicit CVar(const char *sName, bool bValue) { m_sName = sName; m_bValue = bValue; }
+		explicit CVar(const char *sName, T Value) : m_sName(sName), m_Value(Value), m_Default(Value) {}
 
-		template <typename T> T Get();
-		template <> const char *Get<const char *>() { return m_sValue; }
-		template <> int Get<int>() { return m_iValue; }
-		template <> float Get<float>() { return m_fValue; }
-		template <> bool Get<bool>() { return m_bValue; }
-
-		template <typename T> void Set(T);
+		T Get() { return m_Value; }
+		void Set(T Value) { m_Value = Value; }
+		void Reset() { m_Value = m_Default; }
 
 	private:
 		const char *m_sName;
-		union {
-			const char *m_sValue;
-			int m_iValue;
-			float m_fValue;
-			bool m_bValue;
-		};
+		T m_Value;
+		T m_Default;
 	};
 }
 

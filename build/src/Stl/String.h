@@ -5,6 +5,16 @@
 
 /* --------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 /* --------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
+template <typename T> uint StrLen(const T *Str);
+template <> static uint StrLen<char>(const char *Str) { return (uint)strlen(Str); }
+template <> static uint StrLen<wchar_t>(const wchar_t *Str) { return (uint)wcslen(Str); }
+
+template <typename T> bool StrCmp(const T *Left, const T *Right);
+template <> static bool StrCmp<char>(const char *Left, const char *Right) { return !strcmp(Left, Right); }
+template <> static bool StrCmp<wchar_t>(const wchar_t *Left, const wchar_t *Right) { return !wcscmp(Left, Right); }
+
+/* --------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 template <typename T> struct TString;
 
 template <> struct TString<char> 
@@ -123,7 +133,7 @@ template <> struct TString<char>
 		// else
 		return this->Set(Ptr, Length);
 	}
-	inline char *Prepend(const char *Ptr, uint Where) { return this->Insert(Ptr, (uint)strlen(Ptr), Where); }
+	inline char *Insert(const char *Ptr, uint Where) { return this->Insert(Ptr, (uint)strlen(Ptr), Where); }
 
 	inline char *Find(const char Ch) 
 	{
@@ -142,7 +152,6 @@ template <> struct TString<char>
 
 	inline operator char *() { return m_Ptr; }
 	inline char &operator [](uint Index) { return m_Ptr[Index]; }
-	inline operator void *() { return m_Ptr; }
 
 private:
 	char *m_Ptr;
@@ -266,7 +275,7 @@ template <> struct TString<wchar_t>
 		// else
 		return this->Set(Ptr, Length);
 	}
-	inline wchar_t *Prepend(const wchar_t *Ptr, uint Where) { return this->Insert(Ptr, (uint)wcslen(Ptr), Where); }
+	inline wchar_t *Insert(const wchar_t *Ptr, uint Where) { return this->Insert(Ptr, (uint)wcslen(Ptr), Where); }
 
 	inline wchar_t *Find(const wchar_t Ch)
 	{
@@ -285,7 +294,6 @@ template <> struct TString<wchar_t>
 
 	inline operator wchar_t *() { return m_Ptr; }
 	inline wchar_t &operator [](uint Index) { return m_Ptr[Index]; }
-	inline operator wchar_t *() { return m_Ptr; }
 
 private:
 	wchar_t *m_Ptr;

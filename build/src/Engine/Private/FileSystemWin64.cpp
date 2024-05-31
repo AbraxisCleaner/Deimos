@@ -1,12 +1,13 @@
 #include <pch.h>
 #include <Engine/FileSystem.h>
+#include <Engine/Win64Layer.h>
 #include <Engine/DebugLog.h>
 
 #include <Windows.h>
 
 /* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 /* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
-void *Engine::ReadEntireFile(str_t Path, size_t *pOutSize)
+void *Engine::ReadEntireFile(str_t Path, size_t *pOutSize, void *(*pMallocFunc)(size_t Size))
 {
     ::HANDLE F = ::CreateFile(Path, GENERIC_READ, 0x01, nullptr, OPEN_EXISTING, 128, nullptr);
     if (F != (HANDLE)-1) {
@@ -14,7 +15,7 @@ void *Engine::ReadEntireFile(str_t Path, size_t *pOutSize)
         ::GetFileSizeEx(F, &Li);
 
         *pOutSize = Li.QuadPart;
-        char *pBuffer = (char *)malloc(Li.QuadPart + 1);
+        char *pBuffer = (char *)pMallocFunc(Li.QuadPart + 1);
         pBuffer[Li.QuadPart] = 0;
 
         if (::ReadFile(F, pBuffer, Li.LowPart, nullptr, nullptr) && Li.HighPart) {
