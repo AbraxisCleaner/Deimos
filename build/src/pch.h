@@ -33,12 +33,10 @@
 #if !defined(XBR_FORCE_MBC)
 #	define STR(x) LSTR(x)
 #	define TCHAR wchar_t
-typedef const wchar_t *str_t;
 #else
 #	define STR(x) x
 #	define TCHAR char
 #	define MBCS
-typedef const char *str_t;
 #endif
 #define _TCHAR_DEFINED
 

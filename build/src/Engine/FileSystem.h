@@ -4,10 +4,13 @@
 #include <pch.h>
 #include <Stl/String.h>
 
-namespace Engine
+namespace FS
 {
-    void *ReadEntireFile(str_t Path, size_t *pOutSize, void *(*pMallocFunc)(size_t Size));
-    bool WriteEntireFile(str_t Path, void *pBuffer, size_t BufferSize);
+    bool DoesFileExist(const TCHAR *Path);
+    size_t GetFileSize(const TCHAR *Path);
+    uint GetNumFiles(const TCHAR *DirPath);
+    void *ReadEntireFile(const TCHAR *Path, size_t *pOutSize);
+    bool WriteEntireFile(const TCHAR *Path, void *pBuffer, size_t BufferSize);
 
     enum EFileShare
     {
@@ -18,6 +21,7 @@ namespace Engine
         eFileShareAll = 0x01|0x02|0x04,
     };
 
+    // Just mirror Win32.
     enum EFileOpen
     {
         eFileOpenNew = 1,
@@ -26,30 +30,15 @@ namespace Engine
         eFileOpenTruncate = 5,
     };
 
-    struct IFileHandle
+    struct CMappedFile
     {
-        IFileHandle();
-        IFileHandle(const TCHAR *Path, EFileOpen OpenMode, EFileShare ShareMode);
-        ~IFileHandle();
+        CMappedFile();
+        CMappedFile(const TCHAR *Path);
+        ~CMappedFile();
 
         void Close();
-        bool IsDirty();
 
-    private:
-        void *m_Handle;
-        TString<TCHAR> m_Name;
-        EFileShare m_ShareMode;
-        size_t m_Size;
-        size_t m_LastWrite;
-    };
-
-    struct IMappedFile
-    {
-        IMappedFile();
-        IMappedFile(const TCHAR *Path);
-        ~IMappedFile();
-        void Close();
-        void Append(void *pBuffer, size_t BufferSize);
+        inline operator void *() { return m_pView; }
 
     private:
         void *m_Handle;

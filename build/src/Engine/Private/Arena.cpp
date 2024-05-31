@@ -1,7 +1,7 @@
 #include <pch.h>
 #include <Engine/Arena.h>
 
-template <typename T> Engine::TArena<T>::TArena()
+template <typename T> TArena<T>::TArena()
 {
 	m_pBaseAddr = nullptr;
 	m_pNext = nullptr;
@@ -9,7 +9,7 @@ template <typename T> Engine::TArena<T>::TArena()
 	m_IsRingBuffer = false;
 }
 
-template <typename T> Engine::TArena<T>::TArena(size_t Size, bool IsRingBuffer /* = true */)
+template <typename T> TArena<T>::TArena(size_t Size, bool IsRingBuffer /* = true */)
 {
 	m_Size = ALIGN(Size, sizeof(T));
 	m_pBaseAddr = (T *)::malloc(m_Size);
@@ -18,7 +18,7 @@ template <typename T> Engine::TArena<T>::TArena(size_t Size, bool IsRingBuffer /
 	m_IsRingBuffer = IsRingBuffer;
 }
 
-template <typename T> void Engine::TArena<T>::Release()
+template <typename T> void TArena<T>::Release()
 {
 	if (m_pBaseAddr) {
 		free(m_pBaseAddr);
@@ -29,7 +29,7 @@ template <typename T> void Engine::TArena<T>::Release()
 	}
 }
 
-template <typename T> T *Engine::TArena<T>::Alloc(uint Count /* = 1 */)
+template <typename T> T *TArena<T>::Alloc(uint Count /* = 1 */)
 {
 	auto pDst = m_pNext;
 	m_pNext += Count;
@@ -45,7 +45,7 @@ template <typename T> T *Engine::TArena<T>::Alloc(uint Count /* = 1 */)
 	return pDst;
 }
 
-template <typename T> void Engine::TArena<T>::Undo(uint Count /* = 1 */) 
+template <typename T> void TArena<T>::Undo(uint Count /* = 1 */) 
 {
 	m_pNext -= Count;
 	if (m_pNext < m_pBaseAddr) {
@@ -53,14 +53,14 @@ template <typename T> void Engine::TArena<T>::Undo(uint Count /* = 1 */)
 	}
 }
 
-template <typename T> void Engine::TArena<T>::Reset()
+template <typename T> void TArena<T>::Reset()
 {
 	m_pNext = m_pBaseAddr;
 	memset(m_pBaseAddr, 0, m_Size);
 }
 
 /* ------------------------------------------------------------------------------------------------------------------------ */
-Engine::CStackArena::CStackArena()
+CStackArena::CStackArena()
 {
 	m_pBaseAddr = nullptr;
 	m_pNext = nullptr;
@@ -68,7 +68,7 @@ Engine::CStackArena::CStackArena()
 	m_IsRingBuffer = false;
 }
 
-Engine::CStackArena::CStackArena(size_t Size, bool IsRingBuffer /* = true */)
+CStackArena::CStackArena(size_t Size, bool IsRingBuffer /* = true */)
 {
 	m_pBaseAddr = malloc(Size);
 	memset(m_pBaseAddr, 0, Size);
@@ -76,7 +76,7 @@ Engine::CStackArena::CStackArena(size_t Size, bool IsRingBuffer /* = true */)
 	m_IsRingBuffer = IsRingBuffer;
 }
 
-void Engine::CStackArena::Release() 
+void CStackArena::Release() 
 {
 	if (m_pBaseAddr) {
 		free(m_pBaseAddr);
@@ -87,7 +87,7 @@ void Engine::CStackArena::Release()
 	}
 }
 
-void *Engine::CStackArena::Alloc(size_t Size) 
+void *CStackArena::Alloc(size_t Size) 
 {
 	void *pDst = m_pNext;
 	m_pNext += Size;
@@ -103,7 +103,7 @@ void *Engine::CStackArena::Alloc(size_t Size)
 	return pDst;
 }
 
-void Engine::CStackArena::Undo(size_t Size)
+void CStackArena::Undo(size_t Size)
 {
 	m_pNext -= Size;
 	if ((uintptr_t)m_pNext < (uintptr_t)m_pBaseAddr) {
@@ -111,7 +111,7 @@ void Engine::CStackArena::Undo(size_t Size)
 	}
 }
 
-void Engine::CStackArena::Reset()
+void CStackArena::Reset()
 {
 	m_pNext = (uchar *)m_pBaseAddr;
 	memset(m_pBaseAddr, 0, m_Size);
