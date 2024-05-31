@@ -6,7 +6,7 @@
 
 /* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 /* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
-bool Engine::ReadEntireFile(str_t Path, size_t *pOutSize)
+void *Engine::ReadEntireFile(str_t Path, size_t *pOutSize)
 {
     ::HANDLE F = ::CreateFile(Path, GENERIC_READ, 0x01, nullptr, OPEN_EXISTING, 128, nullptr);
     if (F != (HANDLE)-1) {
@@ -45,7 +45,7 @@ Engine::IFileHandle::IFileHandle() : m_Name()
     m_ShareMode = (EFileShare)0;
 }
 
-Engine::IFileHandle::IFileHandle(str_t Path, EFileOpen OpenMode, EFileShare ShareMode)
+Engine::IFileHandle::IFileHandle(const TCHAR *Path, EFileOpen OpenMode, EFileShare ShareMode)
 {
     m_Handle = (void *)::CreateFile(Path, GENERIC_READ | GENERIC_WRITE, ShareMode, NULL, OPEN_EXISTING, 128, NULL);
     if ((intptr_t)m_Handle != (intptr_t)-1) {
@@ -102,7 +102,7 @@ Engine::IMappedFile::IMappedFile() : m_Name()
     m_Size = 0;
 }
 
-Engine::IMappedFile::IMappedFile(str_t Path)
+Engine::IMappedFile::IMappedFile(const TCHAR *Path)
 {
     m_Handle = (void *)::CreateFile(Path, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL, OPEN_EXISTING, 128, NULL);
     if ((intptr_t)m_Handle != (intptr_t)-1) {
@@ -110,7 +110,7 @@ Engine::IMappedFile::IMappedFile(str_t Path)
         ::GetFileSizeEx(m_Handle, &Li);
         m_Size = Li.QuadPart;
 
-        HANDLE Mapping = ::CreateFileMapping(m_Handle, NULL, PAGE_READWRITE, 0, 0, Path);
+        HANDLE Mapping = ::CreateFileMapping(m_Handle, NULL, PAGE_READWRITE, 0, 0, NULL);
         m_pView = ::MapViewOfFile(Mapping, FILE_MAP_WRITE, 0, 0, m_Size);
         
         m_Name.Set(Path);
@@ -130,7 +130,7 @@ Engine::IMappedFile::~IMappedFile()
 
 void Engine::IMappedFile::Close()
 {
-	HANDLE Mapping = ::CreateFileMapping(m_Handle, NULL, PAGE_READWRITE, 0, 0, m_Name);
+	HANDLE Mapping = ::CreateFileMapping(m_Handle, NULL, PAGE_READWRITE, 0, 0, NULL);
 	::UnmapViewOfFile(m_pView);
 	::CloseHandle(Mapping);
     ::CloseHandle(m_Handle);
@@ -138,4 +138,23 @@ void Engine::IMappedFile::Close()
     m_Name.Free();
     m_pView = NULL;
     m_Size = 0;
+}
+
+void Engine::IMappedFile::Append(char *pBuffer, size_t BufferSize)
+{
+    HANDLE Mapping = ::CreateFileMapping(m_Handle, NULL, PAGE_READWRITE, 0, 0, NULL);
+    ::UnmapViewOfFile(m_pView);
+    ::CloseHandle(Mapping);
+
+    ::SetFilePointer(m_Handle, 0, 0, FILE_END);
+    LARGE_INTEGER Li;
+    Li.QuadPart = BufferSize;
+    if (WriteFile(m_Handle, pBuffer, Li.LowPart, NULL, NULL) && Li.HighPart)
+        WriteFile(m_Handle, pBuffer + Li.LowPart, Li.HighPart, NULL, NULL);
+
+	Mapping = ::CreateFileMappingA(m_Handle, NULL, PAGE_READWRITE, 0, 0, NULL);
+	m_pView = ::MapViewOfFile(Mapping, FILE_MAP_WRITE, 0, 0, m_Size);
+
+    ::GetFileSizeEx(m_Handle, &Li);
+    m_Size = Li.QuadPart;
 }

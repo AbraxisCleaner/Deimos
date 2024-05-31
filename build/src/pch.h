@@ -10,7 +10,7 @@
 #include <new.h>
 
 #define ZeroThat(x) memset(x, 0, sizeof(*x))
-#define ZeroThis() memset(this, 0, sizeof(*x))
+#define ZeroThis() memset(this, 0, sizeof(*this))
 
 #define ALIGN(x, y) ((x + (y - 1)) & ~(y - 1))
 #define ALIGN8(x) ALIGN(x, 8)
@@ -37,6 +37,14 @@ typedef const wchar_t *str_t;
 #	define MBCS
 typedef const char *str_t;
 #endif
+
+template <typename T> uint StrLen(const T *Str);
+template <> uint StrLen<char>(const char *Str) { return (uint)strlen(Str); }
+template <> uint StrLen<wchar_t>(const wchar_t *Str) { return (uint)wcslen(Str); }
+
+template <typename T> bool StrCmp(const T *Left, const T *Right);
+template <> bool StrCmp<char>(const char *Left, const char *Right) { return !strcmp(Left, Right); }
+template <> bool StrCmp(wchar_t > (const wchar_t *Left, const wchar_t *Right) { return !wcscmp(Left, Right); }
 
 typedef unsigned int uint;
 typedef unsigned char uchar;

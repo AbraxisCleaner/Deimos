@@ -29,7 +29,7 @@ namespace Engine
     struct IFileHandle
     {
         IFileHandle();
-        IFileHandle(str_t Path, EFileOpen OpenMode, EFileShare ShareMode);
+        IFileHandle(const TCHAR *Path, EFileOpen OpenMode, EFileShare ShareMode);
         ~IFileHandle();
 
         void Close();
@@ -46,9 +46,10 @@ namespace Engine
     struct IMappedFile
     {
         IMappedFile();
-        IMappedFile(str_t Path);
+        IMappedFile(const TCHAR *Path);
         ~IMappedFile();
         void Close();
+        void Append(void *pBuffer, size_t BufferSize);
 
     private:
         void *m_Handle;
