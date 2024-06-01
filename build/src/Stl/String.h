@@ -4,378 +4,199 @@
 #include <pch.h>
 
 /* --------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
-template <typename T> uint StrLen(const T *Str);
-template <typename T> bool StrCmp(const T *Left, const T *Right);
+template <typename T> uint TStrlen(const T *Str);
+template <> static uint TStrlen<char>(const char *Str) { return (uint)strlen(Str); }
+template <> static uint TStrlen<wchar_t>(const wchar_t *Str) { return (uint)wcslen(Str); }
+
+template <typename T> bool TStrcmp(const T *Left, const T *Right);
+template <> static bool TStrcmp<char>(const char *Left, const char *Right) { return !strcmp(Left, Right); }
+template <> static bool TStrcmp<wchar_t>(const wchar_t *Left, const wchar_t *Right) { return !wcscmp(Left, Right); }
+
+template <typename T> const T *TEmptyString();
+template <> const char *TEmptyString() { return ""; }
+template <> const wchar_t *TEmptyString() { return L""; }
 
 /* --------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
-class CStringHeader
+template <typename T> 
+class TString 
 {
 public:
-	CStringHeader()
-	{
-		m_pAddr = nullptr;
-		m_Size = 0;
-		m_NumReferences = 0;
-	}
-
-	void *Resize(size_t NewSize) 
-	{
-		if (m_pAddr) {
-			auto OldSize = m_Size;
-			m_Size = ALIGN16(NewSize);
-			m_pAddr = realloc(m_pAddr, m_Size);
-			memset((void *)(((intptr_t)m_pAddr) + OldSize), 0, (m_Size - OldSize));
-		}
-		else {
-			m_Size = ALIGN16(NewSize);
-			m_pAddr = malloc(m_Size);
-			memset(m_pAddr, 0, m_Size);
-		}
-	}
-
-	void IncrementReference() {
-		++m_NumReferences;
-	}
-
-	void DecrementReference() {
-		--m_NumReferences;
-		if (!m_NumReferences) {
-			delete this;
-		}
-	}
-
-	inline size_t GetSize() const { return m_Size; }
-	inline void *GetAddr() const { return m_pAddr; }
-
-private:
-	void *m_pAddr;
-	size_t m_Size;
-	uint m_NumReferences;
-};
-
-/* --------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
-template <typename T = char> struct TString;
-
-/* @FIXME: Leaning very heavily on operators right now. */
-template <> struct TString<char> 
-{
-	TString() 
-	{
-		m_pHeader = nullptr;
-		m_Length = 0;
-	}
-
-	TString(const char *Ptr, uint Length) 
-	{
-		m_Length = Length;
-		m_pHeader = new CStringHeader;
-		m_pHeader->Resize(Length + 1);
-		memcpy(m_pHeader->GetAddr(), Ptr, Length);
-	}
-	TString(const char *Ptr) : TString(Ptr, (uint)StrLen(Ptr)) {}
-
-	~TString()
-	{
-		if (m_pHeader) {
-			m_pHeader->DecrementReference();
-		}
-	}
-
-	void Release()
-	{
-		m_pHeader->DecrementReference();
-	}
-
-	char *Set(const char *Ptr, uint Length)
-	{
-		m_Length = Length;
-		if (m_Length > m_pHeader->GetSize()) {
-			m_pHeader->Resize(m_Length);
-		}
-		memcpy(m_pHeader->GetAddr(), Ptr, m_Length);
-	}
-	inline char *Set(const char *Ptr) { return this->Set(Ptr, (uint)strlen(Ptr)); }
-
-	char *Append(const char *Ptr, uint Length)
-	{
-		if (m_pHeader) {
-			auto NewLength = (m_Length + Length);
-			if (NewLength >= m_pHeader->Size) {
-				auto OldSize = m_pHeader->Size;
-				m_pHeader->Size = ALIGN16(NewLength + 1);
-				m_pHeader->
-			}
-		}
-
-		if (m_Ptr) {
-			auto t = m_Length + Length;
-			if (t >= m_uCap) {
-				auto OldCap = m_uCap;
-				m_uCap = ALIGN16(t + 1);
-				m_Ptr = (char *)realloc(m_Ptr, m_uCap);
-				memset(&m_Ptr[OldCap], 0, m_uCap - OldCap);
-			}
-			auto pDst = &m_Ptr[m_Length];
-			memcpy(pDst, Ptr, Length);
-			m_Length = t;
-			return pDst;
-		}
-		// else
-		return this->Set(Ptr, Length);
-	}
-	inline char *Append(const char *Ptr) { return this->Append(Ptr, (uint)strlen(Ptr)); }
-
-	char *Prepend(const char *Ptr, uint Length)
-	{
-		if (m_Ptr) {
-			auto t = m_Length + Length;
-			if (t >= m_uCap) {
-				auto OldCap = m_uCap;
-				m_uCap = ALIGN16(t + 1);
-				m_Ptr = (char *)realloc(m_Ptr, m_uCap);
-				memset(&m_Ptr[OldCap], 0, m_uCap - OldCap);
-			}
-			memcpy(&m_Ptr[Length], m_Ptr, m_Length);
-			memcpy(m_Ptr, Ptr, Length);
-			m_Length = t;
-			return m_Ptr;
-		}
-		// else
-		return this->Set(Ptr, Length);
-	}
-	inline char *Prepend(const char *Ptr) { return this->Prepend(Ptr, (uint)strlen(Ptr)); }
-
-	char *Insert(const char *Ptr, uint Length, uint Where)
-	{
-		if (m_Ptr) {
-			if (Where > m_Length)
-				return this->Append(Ptr, Length);
-
-			auto t = m_Length + Length;
-
-			if (t >= m_uCap) {
-				auto OldCap = m_uCap;
-				m_uCap = ALIGN16(t + 1);
-				m_Ptr = (char *)realloc(m_Ptr, m_uCap);
-				memset(&m_Ptr[OldCap], 0, m_uCap - OldCap);
-			}
-
-			memcpy(&m_Ptr[Where + Length], &m_Ptr[Where], m_Length - Where);
-			memcpy(&m_Ptr[Where], Ptr, Length);
-			m_Length = t;
-			return &m_Ptr[Where];
-		}
-		// else
-		return this->Set(Ptr, Length);
-	}
-	inline char *Insert(const char *Ptr, uint Where) { return this->Insert(Ptr, (uint)strlen(Ptr), Where); }
-
-	inline char *Find(const char Ch) 
-	{
-		for (auto c = m_Ptr; *c; ++c)
-			if (*c == Ch)
-				return c;
-		return NULL;
-	}
-	inline char *FindLast(const char Ch)
-	{
-		for (auto c = &*this[m_Length]; c != (char *)*this; --c)
-			if (*c == Ch)
-				return c;
-		return NULL;
-	}
-
-	inline operator char *() { return (char *)(((intptr_t)m_pHeader) + sizeof(*m_pHeader)); }
-	inline char &operator [](uint Index) { return ((char *)(((intptr_t)m_pHeader) + sizeof(*m_pHeader)))[Index]; }
-
-private:
-	CStringHeader *m_pHeader;
-	uint m_Length; 
-};
-
-template <> struct TString<wchar_t>
-{
 	TString()
 	{
-		m_Ptr = L"";
+		m_Ptr = (T *)TEmptyString<T>();
 		m_uCap = 0;
-		m_Length = 0;
+		m_uLength = 0;
 	}
-	TString(const wchar_t *Ptr, uint Length)
+
+	TString(const T *Ptr, uint Length)
 	{
-		m_uCap = ALIGN16(Length);
-		m_Length = Length;
-		m_Ptr = (wchar_t *)malloc(m_uCap);
-		memset(m_Ptr, 0, m_uCap);
-		memcpy(m_Ptr, Ptr, m_Length);
+		m_uLength = Length;
+		m_uCap = ALIGN16(m_uLength + 1);
+		m_Ptr = (T *)malloc(m_uCap * sizeof(T));
+		memset(m_Ptr, 0, m_uCap * sizeof(T));
+		memcpy(m_Ptr, Ptr, m_uLength * sizeof(T));
 	}
-	TString(const wchar_t *Ptr)
+	TString(const T *Ptr) : TString(Ptr, TStrlen(Ptr)) {}
+
+	TString(TString &&Other)
 	{
-		m_Length = (uint)wcslen(Ptr);
-		m_uCap = ALIGN16(m_Length);
-		m_Ptr = (wchar_t *)malloc(m_uCap);
-		memset(m_Ptr, 0, m_uCap);
-		memcpy(m_Ptr, Ptr, m_Length);
+		m_Ptr = Other.m_Ptr;
+		m_uCap = Other.m_uCap;
+		m_uLength = Other.m_uLength;
+		Other.m_Ptr = (T *)TEmptyString<T>();
+		Other.m_uCap = 0;
+		Other.m_uLength = 0;
 	}
+
 	~TString()
 	{
-		if (m_Ptr != L"") {
-			free(m_Ptr);
-		}
+		Free();
 	}
 
 	void Free()
 	{
-		if (m_Ptr != L"") {
+		if (m_Ptr != (T *)TEmptyString<T>()) {
 			free(m_Ptr);
-			m_Ptr = L"";
+			m_Ptr = (T *)TEmptyString<T>();
 			m_uCap = 0;
-			m_Length = 0;
+			m_uLength = 0;
 		}
 	}
 
-	wchar_t *Set(const wchar_t *Ptr, uint Length)
+	void Set(const T *Ptr, uint Length)
 	{
-		m_uCap = ALIGN16(Length);
-		m_Length = Length;
-		if (m_Ptr != L"") {
-			m_Ptr = (wchar_t *)realloc(m_Ptr, m_uCap * sizeof(wchar_t));
-		}
-		memset(m_Ptr, 0, m_uCap);
-		memcpy(m_Ptr, Ptr, m_Length);
-	}
-	inline wchar_t *Set(const wchar_t *Ptr) { return this->Set(Ptr, (uint)wcslen(Ptr)); }
-
-	wchar_t *Append(const wchar_t *Ptr, uint Length)
-	{
-		if (m_Ptr) {
-			auto t = m_Length + Length;
-			if (t >= m_uCap) {
-				auto OldCap = m_uCap;
-				m_uCap = ALIGN16(t + 1);
-				m_Ptr = (wchar_t *)realloc(m_Ptr, m_uCap * sizeof(wchar_t));
-				memset(&m_Ptr[OldCap], 0, m_uCap - OldCap);
-			}
-			auto pDst = &m_Ptr[m_Length];
-			memcpy(pDst, Ptr, Length);
-			m_Length = t;
-			return pDst;
-		}
-		// else
-		return this->Set(Ptr, Length);
-	}
-	inline wchar_t *Append(const wchar_t *Ptr) { return this->Append(Ptr, (uint)wcslen(Ptr)); }
-
-	wchar_t *Prepend(const wchar_t *Ptr, uint Length)
-	{
-		if (m_Ptr) {
-			auto t = m_Length + Length;
-			if (t >= m_uCap) {
-				auto OldCap = m_uCap;
-				m_uCap = ALIGN16(t + 1);
-				m_Ptr = (wchar_t *)realloc(m_Ptr, m_uCap * sizeof(wchar_t));
-				memset(&m_Ptr[OldCap], 0, m_uCap - OldCap);
-			}
-			memcpy(&m_Ptr[Length], m_Ptr, m_Length);
-			memcpy(m_Ptr, Ptr, Length);
-			m_Length = t;
-			return m_Ptr;
-		}
-		// else
-		return this->Set(Ptr, Length);
-	}
-	inline wchar_t *Prepend(const wchar_t *Ptr) { return this->Prepend(Ptr, (uint)wcslen(Ptr)); }
-
-	wchar_t *Insert(const wchar_t *Ptr, uint Length, uint Where)
-	{
-		if (m_Ptr) {
-			if (Where > m_Length)
-				return this->Append(Ptr, Length);
-
-			auto t = m_Length + Length;
-
-			if (t >= m_uCap) {
-				auto OldCap = m_uCap;
-				m_uCap = ALIGN16(t + 1);
-				m_Ptr = (wchar_t *)realloc(m_Ptr, m_uCap * sizeof(wchar_t));
-				memset(&m_Ptr[OldCap], 0, m_uCap - OldCap);
-			}
-
-			memcpy(&m_Ptr[Where + Length], &m_Ptr[Where], m_Length - Where);
-			memcpy(&m_Ptr[Where], Ptr, Length);
-			m_Length = t;
-			return &m_Ptr[Where];
-		}
-		// else
-		return this->Set(Ptr, Length);
-	}
-	inline wchar_t *Insert(const wchar_t *Ptr, uint Where) { return this->Insert(Ptr, (uint)wcslen(Ptr), Where); }
-
-	inline wchar_t *Find(const wchar_t Ch)
-	{
-		for (auto c = m_Ptr; *c; ++c)
-			if (*c == Ch)
-				return c;
-		return NULL;
-	}
-	inline wchar_t *FindLast(const wchar_t Ch)
-	{
-		for (wchar_t *c = &m_Ptr[m_Length]; c != m_Ptr; --c)
-			if (*c == Ch)
-				return c;
-		return NULL;
-	}
-
-	inline operator wchar_t *() { return m_Ptr; }
-	inline wchar_t &operator [](uint Index) { return m_Ptr[Index]; }
-
-private:
-	wchar_t *m_Ptr;
-	uint m_Length;
-	uint m_uCap;
-};
-
-template <typename T> struct TStaticString;
-
-template <> struct TStaticString<char> {
-	TStaticString()
-	{
-		m_Ptr = "";
-		m_uLength = 0;
-	}
-	TStaticString(const char *Ptr, uint Length) 
-	{
-		m_Ptr = Ptr;
 		m_uLength = Length;
+		m_uCap = ALIGN16(Length + 1);
+		if (m_Ptr != (T *)TEmptyString<T>())
+			m_Ptr = (T *)realloc(m_Ptr, m_uCap * Sizeof(T));
+		else
+			m_Ptr = (T *)malloc(m_uCap * sizeof(T));
+		memset(m_Ptr, 0, m_uCap * sizeof(T));
+		memcpy(m_Ptr, Ptr, Length * sizeof(T));
 	}
-	TStaticString(const char *Ptr) 
+	inline void Set(const T *Ptr) { Set(Ptr, TStrlen(Ptr)); }
+
+	void Reserve(uint Addition) 
 	{
-		m_Ptr = Ptr;
-		m_uLength = (uint)strlen(Ptr);
+		if (m_Ptr != (T *)TEmptyString<T>()) {
+			auto t = m_uLength + Addition + 1;
+			if (t >= m_uCap) {
+				auto old = m_uCap;
+				m_uCap = ALIGN16(t);
+				m_Ptr = (T *)realloc(m_Ptr, m_uCap * sizeof(T));
+				memset(&m_Ptr[old], 0, m_uCap - old);
+			}
+		}
+		else {
+			m_uCap = ALIGN16(Addition + 1);
+			m_Ptr = (T *)malloc(m_uCap * sizeof(T));
+			memset(m_Ptr, 0, m_uCap * sizeof(T));
+		}
 	}
 
-	inline const char *Find(const char Ch)
+	void Resize(uint NewSize)
 	{
-		for (auto c = m_Ptr; *c; ++c)
-			if (*c == Ch)
-				return c;
-		return NULL;
-	}
-	inline const char *FindLast(const char Ch)
-	{
-		for (auto c = &m_Ptr[m_uLength]; c != m_Ptr; --c)
-			if (*c == Ch)
-				return c;
-		return NULL;
+		if (m_Ptr != (T *)TEmptyString<T>()) {
+			auto old = m_uCap;
+			m_uCap = ALIGN16(NewSize + 1);
+			m_Ptr = (T *)realloc(m_Ptr, m_uCap * sizeof(T));
+			if (NewSize > old) {
+				memset(&m_Ptr[old], 0, (m_uCap - old) * sizeof(T));
+			}
+			else {
+				m_Ptr[m_uCap] = 0;
+			}
+		}
 	}
 
-	inline const char &operator [](uint Index) { return m_Ptr[Index]; }
-	inline operator const char *() { return m_Ptr; }
-	inline operator const void *() { return m_Ptr; }
+	void Append(const T *Ptr, uint Length)
+	{
+		if (m_Ptr != (T *)TEmptyString<T>()) {
+			auto t = (m_uLength + Length + 1);
+			if (t >= m_uCap) {
+				auto old = m_uCap;
+				m_uCap = ALIGN16(t);
+				m_Ptr = (T *)realloc(m_Ptr, m_uCap * sizeof(T));
+				memset(&m_Ptr[old], 0, (m_uCap - old) * sizeof(T));
+			}
+			memcpy(&m_Ptr[m_uLength], Ptr, Length * sizeof(T));
+			m_uLength = t;
+		}
+		else {
+			m_uLength = Length;
+			m_uCap = ALIGN16(Length + 1);
+			m_Ptr = (T *)malloc(m_uCap * sizeof(T));
+			memset(m_Ptr, 0, m_uCap * sizeof(T));
+			memcpy(m_Ptr, Ptr, Length * sizeof(T));
+		}
+	}
+	inline void Append(const T *Ptr) { Append(Ptr, TStrlen(Ptr)); }
+
+	void Prepend(const T *Ptr, uint Length)
+	{
+		if (m_Ptr != (T *)TEmptyString<T>()) {
+			auto t = (m_uLength + Length + 1);
+			if (t >= m_uCap) {
+				auto old = m_uCap;
+				m_uCap = ALIGN16(t);
+				m_Ptr = (T *)realloc(m_Ptr, m_uCap * sizeof(T));
+				memset(&m_Ptr[old], 0, (m_uCap - old) * sizeof(T));
+			}
+			memcpy(&m_Ptr[Length], m_Ptr, m_uLength * sizeof(T));
+			memcpy(m_Ptr, Ptr, Length * sizeof(T));
+			m_uLength = t;
+		}
+		else {
+			m_uLength = Length;
+			m_uCap = ALIGN16(Length + 1);
+			m_Ptr = (T *)malloc(m_uCap * sizeof(T));
+			memset(m_Ptr, 0, m_uCap * sizeof(T));
+			memcpy(m_Ptr, Ptr, Length * sizeof(T));
+		}
+	}
+	inline void Prepend(const T *Ptr) { Prepend(Ptr, TStrlen(Ptr)); }
+
+	void Insert(const T *Ptr, uint Length, uint Where)
+	{
+		if (m_Ptr != (T *)TEmptyString<T>()) {
+			auto t = (m_uLength + Length + 1);
+			if (t >= m_uCap) {
+				auto old = m_uCap;
+				m_uCap = ALIGN16(t);
+				m_Ptr = (T *)realloc(m_Ptr, m_uCap * sizeof(T));
+				memset(&m_Ptr[old], 0, (m_uCap - old) * sizeof(T));
+			}
+			memcpy(&m_Ptr[Where + Length], &m_Ptr[Where], (m_uLength - Where) * sizeof(T));
+			memcpy(&m_Ptr[Where], Ptr, Length * sizeof(T));
+			m_uLength = t;
+		}
+		else {
+			m_uLength = Length;
+			m_uCap = ALIGN16(Length + 1);
+			m_Ptr = (T *)malloc(m_uCap * sizeof(T));
+			memset(m_Ptr, 0, m_uCap * sizeof(T));
+			memcpy(m_Ptr, Ptr, Length * sizeof(T));
+		}
+	}
+	inline void Insert(const T *Ptr, uint Where) { Insert(Ptr, TStrlen(Ptr), Where); }
+
+	inline void *Raw() { return m_Ptr; }
+	inline operator T *() { return m_Ptr; }
+	inline operator const T *() { return (const T *)m_Ptr; }
+	
+	inline T &operator [](uint Index) { return m_Ptr[Index]; }
+	
+	inline bool operator ==(const T *Other) { return TStrcmp(m_Ptr, Other); }
+	inline bool operator ==(const TString &Other) { return TStrcmp(m_Ptr, Other.m_Ptr); }
+
+	inline void operator +=(const T *Str) { Append(Str); }
 
 private:
-	const char *m_Ptr;
+	T *m_Ptr;
+	uint m_uCap;
 	uint m_uLength;
 };
+
+typedef TString<TCHAR> CString;
 
 #endif // _STL_STRING_H_
