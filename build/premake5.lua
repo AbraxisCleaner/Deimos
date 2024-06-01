@@ -1,7 +1,7 @@
 workspace "XBR"
     configurations { "Development", "Debug", "Release" }
     language "C++"
-    cppdialect "C++20"
+    cppdialect "C++17"
     conformancemode "Off"
     pchheader "pch.h"
     pchsource "pch.cpp"
@@ -10,8 +10,6 @@ workspace "XBR"
     objdir "bin/obj/%{cfg.buildcfg}"
     files { "src/**.h", "src/Stl/**", "src/pch.cpp" }
     justmycode "Off"
-    pchheader "pch.h"
-    pchsource "pch.cpp"
 
     filter "platforms:Win64"
         system "Windows"
@@ -31,16 +29,9 @@ workspace "XBR"
         defines { "NDEBUG" }
         optimize "On"
 
-project "Engine"
-    kind "StaticLib"
-    defines { "XBR_ENGINE_LIB" }
-    files { "src/Engine/**" }
-    includedirs { "src", "vendor" }
-
 project "Editor"
     kind "ConsoleApp"
-    defines { "Editor" }
-    files { "src/Editor/**" }
-    dependson { "Engine" }
-    links { "Engine" }
-    includedirs { "src", "vendor" }
+    files { "src/Engine/**", "src/Editor/**" }
+    includedirs { "src", "src/vendor" }
+    pchheader "pch.h"
+    pchsource "pch.cpp"
