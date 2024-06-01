@@ -2,16 +2,18 @@
 #define _EDITOR_APPLICATION_H_
 
 #include <pch.h>
-#include <Engine/Direct3D12.h>
+#include <Engine/SystemWin64.h>
+#include <Engine/SystemDx12.h>
 
-struct CEditor
+class CEditor
 {
-	CEditor();
-	~CEditor();
+public:
+	CEditor() = default;
+	CEditor(TCHAR *CmdLine);
+	void Shutdown();
 
 private:
-	Engine::IRhiWindow m_MainWindow;
+	System::CWindow m_MainWindow;
 };
-extern CEditor *gEditor;
 
 #endif // _EDITOR_APPLICATION_H_
