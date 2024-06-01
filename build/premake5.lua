@@ -1,4 +1,4 @@
-workspace "XBR"
+workspace "Talos"
     configurations { "Development", "Debug", "Release" }
     language "C++"
     cppdialect "C++17"
@@ -8,7 +8,7 @@ workspace "XBR"
     platforms { "Win64" }
     targetdir "bin/%{cfg.buildcfg}"
     objdir "bin/obj/%{cfg.buildcfg}"
-    files { "src/**.h", "src/Stl/**", "src/pch.cpp" }
+    files { "source/**.h", "source/Stl/**", "source/pch.cpp" }
     justmycode "Off"
 
     filter "platforms:Win64"
@@ -31,7 +31,7 @@ workspace "XBR"
 
 project "Editor"
     kind "ConsoleApp"
-    files { "src/Engine/**", "src/Editor/**" }
-    includedirs { "src", "src/vendor" }
+    files { "source/Engine/**", "source/Editor/**" }
+    includedirs { "source", "source/vendor" }
     pchheader "pch.h"
     pchsource "pch.cpp"
