@@ -13,7 +13,7 @@
 
 #define ALIGN(x, y) ((x + (y - 1)) & ~(y - 1))
 #define ALIGN8(x) ALIGN(x, 8)
-#define ALIGN16(x) ALIGN(x, 16)
+#define ALIGN16(x) ALIGN((x), 16)
 
 #define KILOBYTES(x) (x * 1024)
 #define MEGABYTES(x) (x * 1024 * 1024)
