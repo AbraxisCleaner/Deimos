@@ -62,7 +62,6 @@ LRESULT CALLBACK WndProcImpl(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
 	auto pWnd = (System::CWindow *)::GetWindowLongPtr(hwnd, GWLP_USERDATA);
 	if (pWnd) {
 		switch (umsg) {
-		
 		case WM_CLOSE: pWnd->m_ShouldClose = true; break;
 		
 		case WM_SIZE: {
@@ -121,7 +120,7 @@ System::CWindow::CWindow(int Width, int Height, const TCHAR *Title)
 	m_Hwnd = ::CreateWindowEx(0, L"System::CWindow", Title, WS_TILEDWINDOW, Px, Py, Rect.right, Rect.bottom, nullptr, nullptr, gWin64->hInstance, nullptr);
 	VERIFY(m_Hwnd);
 
-	::SetWindowLongPtr(m_Hwnd, GWLP_USERDATA, (uintptr_t)this);
+	::SetWindowLongPtrW(m_Hwnd, GWLP_USERDATA, (uintptr_t)this);
 
 	::GetClientRect(m_Hwnd, &Rect);
 	m_Size[0] = (Rect.right - Rect.left);
@@ -170,7 +169,7 @@ void System::CWindow::Release()
 	m_pSwapChain->Release();
 	::DestroyWindow(m_Hwnd);
 
-	ZeroThis();
+	m_ShouldClose = true;
 }
 
 void System::CWindow::Show() const { ::ShowWindow(m_Hwnd, SW_SHOW); }

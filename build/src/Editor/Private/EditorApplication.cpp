@@ -7,11 +7,13 @@ CEditor::CEditor(TCHAR *CmdLine)
 	System::Dx12::Initialize();
 
 	m_MainWindow = System::CWindow(1280, 720, STR("Editor"));
+	m_MainWindow.Show();
 
 	while (!m_MainWindow.ShouldClose()) {
 		System::CWindow::PumpEvents();
 	}
 
+	m_MainWindow.Release();
 	Shutdown();
 }
 
