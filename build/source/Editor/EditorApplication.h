@@ -5,15 +5,15 @@
 #include <Engine/SystemWin64.h>
 #include <Engine/SystemDx12.h>
 
-class CEditor
+class CEditorApplication
 {
 public:
-	CEditor() = default;
-	CEditor(TCHAR *CmdLine);
+	CEditorApplication() = default;
+	CEditorApplication(TCHAR *CmdLine);
 	void Shutdown();
 
 private:
-	System::CWindow m_MainWindow;
+	RHI::CWindow m_MainWindow;
 };
 
 #endif // _EDITOR_APPLICATION_H_

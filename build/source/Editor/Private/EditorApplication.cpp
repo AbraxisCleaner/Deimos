@@ -1,24 +1,27 @@
 #include <pch.h>
 #include <Editor/EditorApplication.h>
 
-CEditor::CEditor(TCHAR *CmdLine)
+CEditorApplication::CEditorApplication(TCHAR *CmdLine)
 {
-	System::Win64::Initialize();
-	System::Dx12::Initialize();
+	System::Initialize();
+	RHI::Dx12::Initialize();
 
-	m_MainWindow = System::CWindow(1280, 720, STR("Editor"));
+	m_MainWindow = RHI::CWindow(1280, 720, STR("Editor"));
 	m_MainWindow.Show();
 
-	while (!m_MainWindow.ShouldClose()) {
-		System::CWindow::PumpEvents();
+	while (true) 
+	{
+		RHI::CWindow::PumpEvents();
+
+		if (m_MainWindow.ShouldClose())
+			break;
 	}
 
-	m_MainWindow.Release();
 	Shutdown();
 }
 
-void CEditor::Shutdown()
+void CEditorApplication::Shutdown()
 {
-	System::Dx12::Shutdown();
-	System::Win64::Shutdown();
+	RHI::Dx12::Shutdown();
+	System::Shutdown();
 }

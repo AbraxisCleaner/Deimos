@@ -7,7 +7,7 @@
 #include <d3d12.h>
 #include <dxgi1_4.h>
 
-namespace System
+namespace RHI
 {
 	struct SDx12State
 	{
@@ -26,10 +26,11 @@ namespace System
 	{
 		bool Initialize();
 		void Shutdown();
-
 		bool WaitForDrawing();
 	}
 
+	/* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
+	/* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 	class CWindow
 	{
 	public:
@@ -37,20 +38,25 @@ namespace System
 		CWindow(int Width, int Height, const TCHAR *Title);
 		
 		void Release();
+		void OnResize();
+
 		void Show() const;
 		void Hide() const;
-		ID3D12Resource *GetCurrentResource() const;
+		ID3D12Resource *GetCurrentRenderTargetResource() const;
 		D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentRenderTarget() const;
-		inline bool ShouldClose() const { return m_ShouldClose; }
-		inline bool InFocus() const { return m_InFocus; }
+
+		inline void OnActivate(bool IsActive) { m_bInFocus = IsActive; } // NOTE(dalex): Should 'm_bInFocus' be called 'm_bIsActive'?
+
+		inline bool ShouldClose() const { return m_bShouldClose; }
+		inline bool InFocus() const { return m_bInFocus; }
 
 		static void PumpEvents();
 
-	public:
-		HWND m_Hwnd;
-		uint m_Size[2];
-		bool m_ShouldClose;
-		bool m_InFocus;
+	private:
+		HWND m_hWnd;
+		uint m_uSize[2];
+		bool m_bShouldClose;
+		bool m_bInFocus;
 		IDXGISwapChain3 *m_pSwapChain;
 		ID3D12Resource *m_pSwapChainImages[2];
 		ID3D12DescriptorHeap *m_pRenderTargetHeap;

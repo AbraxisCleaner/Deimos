@@ -12,28 +12,28 @@
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------- */
-System::SWin64State _Win64 = {};
-System::SWin64State *System::gWin64 = &_Win64;
+SWin64State _Win64 = {};
+SWin64State *gSystem= &_Win64;
 
-bool System::Win64::Initialize()
+bool System::Initialize()
 {
-	gWin64->hInstance = ::GetModuleHandleA(nullptr);
+	gSystem->hInstance = ::GetModuleHandleA(nullptr);
 	
-	::CreateDXGIFactory1(IID_PPV_ARGS(&gWin64->pDxgiFactory));
-	gWin64->pDxgiFactory->EnumAdapters1(0, &gWin64->pDxgiAdapter);
+	::CreateDXGIFactory1(IID_PPV_ARGS(&gSystem->pDxgiFactory));
+	gSystem->pDxgiFactory->EnumAdapters1(0, &gSystem->pDxgiAdapter);
 
 	LARGE_INTEGER Li;
 	::QueryPerformanceFrequency(&Li);
-	gWin64->ClockFreq = Li.QuadPart;
+	gSystem->ClockFreq = Li.QuadPart;
 
 	return true;
 }
 
-void System::Win64::Shutdown()
+void System::Shutdown()
 {
-	gWin64->pDxgiAdapter->Release();
-	gWin64->pDxgiFactory->Release();
-	ZeroThat(gWin64);
+	gSystem->pDxgiAdapter->Release();
+	gSystem->pDxgiFactory->Release();
+	ZeroThat(gSystem);
 
 #if defined(_DEBUG)
 	IDXGIDebug *pDebug1;
@@ -41,6 +41,18 @@ void System::Win64::Shutdown()
 	pDebug1->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
 	pDebug1->Release();
 #endif
+}
+
+s64 System::GetClock() 
+{
+	LARGE_INTEGER Li;
+	::QueryPerformanceCounter(&Li);
+	return Li.QuadPart;
+}
+
+f32 System::GetElapsedSeconds(s64 Start, s64 End) 
+{
+	return ((f32)(End - Start) / (f32)gSystem->ClockFreq);
 }
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------- */

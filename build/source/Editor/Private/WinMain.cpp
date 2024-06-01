@@ -7,6 +7,6 @@ int main(int argc, char **argv)
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow)
 #endif
 {
-	CEditor _Editor(GetCommandLine()); // 'Editor' is defined for some reason.
+	CEditorApplication _Editor(GetCommandLine()); // 'Editor' is defined for some reason.
 	return 0;
 }

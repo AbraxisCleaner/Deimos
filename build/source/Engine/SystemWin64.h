@@ -6,32 +6,22 @@
 #include <Windows.h>
 #include <dxgi1_3.h>
 
+struct SWin64State
+{
+	HINSTANCE hInstance;
+	IDXGIFactory2 *pDxgiFactory;
+	IDXGIAdapter1 *pDxgiAdapter;
+	s64 ClockFreq;
+};
+extern SWin64State *gSystem;
+
 namespace System
 {
-	struct SWin64State
-	{
-		HINSTANCE hInstance;
-		IDXGIFactory2 *pDxgiFactory;
-		IDXGIAdapter1 *pDxgiAdapter;
-		s64 ClockFreq;
-	};
-	extern SWin64State *gWin64;
+	bool Initialize();
+	void Shutdown();
 
-	namespace Win64
-	{
-		bool Initialize();
-		void Shutdown();
-	}
-
-	static inline s64 GetClock() {
-		LARGE_INTEGER Li;
-		::QueryPerformanceCounter(&Li);
-		return Li.QuadPart;
-	}
-
-	static inline f32 GetElapsedSeconds(s64 Start, s64 End) {
-		return ((f32)(End - Start) / (f32)gWin64->ClockFreq);
-	}
+	s64 GetClock();
+	f32 GetElapsedSeconds(s64 Start, s64 End);
 }
 
 #endif // _ENGINE_WIN64_SYSTEM_H_

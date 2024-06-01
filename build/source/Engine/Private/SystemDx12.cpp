@@ -5,12 +5,12 @@
 
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 /* ---------------------------------------------------------------------------------------------------------------------------------------------------------------- */
-System::SDx12State _d3d;
-System::SDx12State *System::gd3d = &_d3d;
+RHI::SDx12State _d3d;
+RHI::SDx12State *gd3d = &_d3d;
 
-bool System::Dx12::Initialize()
+bool RHI::Dx12::Initialize()
 {
-	if (FAILED(::D3D12CreateDevice(gWin64->pDxgiAdapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&gd3d->pDevice))))
+	if (FAILED(::D3D12CreateDevice(gSystem->pDxgiAdapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&gd3d->pDevice))))
 		return false;
 
 	D3D12_COMMAND_QUEUE_DESC QueueDesc = {};
@@ -30,7 +30,7 @@ bool System::Dx12::Initialize()
 	return true;
 }
 
-void System::Dx12::Shutdown()
+void RHI::Dx12::Shutdown()
 {
 	WaitForDrawing();
 
@@ -43,7 +43,7 @@ void System::Dx12::Shutdown()
 	ZeroThat(gd3d);
 }
 
-bool System::Dx12::WaitForDrawing()
+bool RHI::Dx12::WaitForDrawing()
 {
 	if (gd3d->pQueueFence->GetCompletedValue() != gd3d->FenceValue) {
 		gd3d->pQueueFence->SetEventOnCompletion(gd3d->FenceValue, gd3d->FenceEvent);
@@ -59,47 +59,25 @@ bool _bWndClass = false;
 
 LRESULT CALLBACK WndProcImpl(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)
 {
-	auto pWnd = (System::CWindow *)::GetWindowLongPtr(hwnd, GWLP_USERDATA);
+	auto pWnd = (RHI::CWindow *)::GetWindowLongPtr(hwnd, GWLP_USERDATA);
 	if (pWnd) {
 		switch (umsg) {
-		case WM_CLOSE: pWnd->m_ShouldClose = true; break;
-		
-		case WM_SIZE: {
-			RECT Rect;
-			::GetClientRect(hwnd, &Rect);
-			pWnd->m_Size[0] = (Rect.right - Rect.left);
-			pWnd->m_Size[1] = (Rect.bottom - Rect.top);
 
-			pWnd->m_pSwapChainImages[1]->Release();
-			pWnd->m_pSwapChainImages[0]->Release();
-			pWnd->m_pSwapChain->ResizeBuffers(2, pWnd->m_Size[0], pWnd->m_Size[1], DXGI_FORMAT_R8G8B8A8_UNORM, 0);
-			pWnd->m_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pWnd->m_pSwapChainImages[0]));
-			pWnd->m_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pWnd->m_pSwapChainImages[1]));
-
-			auto Rtv = pWnd->m_pRenderTargetHeap->GetCPUDescriptorHandleForHeapStart();
-			System::gd3d->pDevice->CreateRenderTargetView(pWnd->m_pSwapChainImages[0], nullptr, Rtv);
-			Rtv.ptr += System::gd3d->RenderTargetSize;
-			System::gd3d->pDevice->CreateRenderTargetView(pWnd->m_pSwapChainImages[1], nullptr, Rtv);
-		} break;
-
-		case WM_ACTIVATEAPP: {
-			if (wparam)
-				pWnd->m_InFocus = true;
-			else
-				pWnd->m_InFocus = false;
-		} break;
+		case WM_CLOSE: { pWnd->Release(); } break;
+		case WM_SIZE: {	pWnd->OnResize(); } break;
+		case WM_ACTIVATEAPP: { pWnd->OnActivate(wparam); } break;
 		}
 	}
 	return ::DefWindowProc(hwnd, umsg, wparam, lparam);
 }
 
-System::CWindow::CWindow(int Width, int Height, const TCHAR *Title)
+RHI::CWindow::CWindow(int Width, int Height, const TCHAR *Title)
 {
 	if (!_bWndClass) {
 		WNDCLASSEX Wc = {};
 		Wc.cbSize = sizeof(WNDCLASSEX);
 		Wc.cbWndExtra = sizeof(intptr_t);
-		Wc.hInstance = gWin64->hInstance;
+		Wc.hInstance = System::gSystem->hInstance;
 		Wc.hCursor = ::LoadCursor(Wc.hInstance, IDC_ARROW);
 		Wc.lpszClassName = L"System::CWindow";
 		Wc.lpfnWndProc = WndProcImpl;
@@ -117,17 +95,17 @@ System::CWindow::CWindow(int Width, int Height, const TCHAR *Title)
 	auto Px = ((Monitor.rcWork.right / 2) - (Rect.right / 2));
 	auto Py = ((Monitor.rcWork.bottom / 2) - (Rect.bottom / 2));
 
-	m_Hwnd = ::CreateWindowEx(0, L"System::CWindow", Title, WS_TILEDWINDOW, Px, Py, Rect.right, Rect.bottom, nullptr, nullptr, gWin64->hInstance, nullptr);
-	VERIFY(m_Hwnd);
+	m_hWnd = ::CreateWindowEx(0, L"System::CWindow", Title, WS_TILEDWINDOW, Px, Py, Rect.right, Rect.bottom, nullptr, nullptr, gSystem->hInstance, nullptr);
+	VERIFY(m_hWnd);
 
-	::SetWindowLongPtrW(m_Hwnd, GWLP_USERDATA, (uintptr_t)this);
+	::SetWindowLongPtrW(m_hWnd, GWLP_USERDATA, (uintptr_t)this);
 
-	::GetClientRect(m_Hwnd, &Rect);
-	m_Size[0] = (Rect.right - Rect.left);
-	m_Size[1] = (Rect.bottom - Rect.top);
+	::GetClientRect(m_hWnd, &Rect);
+	m_uSize[0] = (Rect.right - Rect.left);
+	m_uSize[1] = (Rect.bottom - Rect.top);
 
-	m_InFocus = true;
-	m_ShouldClose = false;
+	m_bInFocus = true;
+	m_bShouldClose = false;
 
 	// -- SwapChain;
 	IDXGISwapChain1 *pSwap1;
@@ -138,10 +116,10 @@ System::CWindow::CWindow(int Width, int Height, const TCHAR *Title)
 	Scd.SampleDesc.Count = 1;
 	Scd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	Scd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	Scd.Width = m_Size[0];
-	Scd.Height = m_Size[1];
+	Scd.Width = m_uSize[0];
+	Scd.Height = m_uSize[1];
 	
-	gWin64->pDxgiFactory->CreateSwapChainForHwnd(gd3d->pCmdQueue, m_Hwnd, &Scd, nullptr, nullptr, &pSwap1);
+	gSystem->pDxgiFactory->CreateSwapChainForHwnd(gd3d->pCmdQueue, m_hWnd, &Scd, nullptr, nullptr, &pSwap1);
 	pSwap1->QueryInterface(&m_pSwapChain);
 	pSwap1->Release();
 
@@ -167,15 +145,33 @@ void System::CWindow::Release()
 	m_pSwapChainImages[1]->Release();
 	m_pSwapChainImages[0]->Release();
 	m_pSwapChain->Release();
-	::DestroyWindow(m_Hwnd);
 
-	m_ShouldClose = true;
+	m_bShouldClose = true;
 }
 
-void System::CWindow::Show() const { ::ShowWindow(m_Hwnd, SW_SHOW); }
-void System::CWindow::Hide() const { ::ShowWindow(m_Hwnd, SW_HIDE); }
+void RHI::CWindow::OnResize()
+{
+	RECT Rect;
+	::GetClientRect(hwnd, &Rect);
+	m_uSize[0] = (Rect.right - Rect.left);
+	m_uSize[1] = (Rect.bottom - Rect.top);
 
-ID3D12Resource *System::CWindow::GetCurrentResource() const { 
+	m_pSwapChainImages[1]->Release();
+	m_pSwapChainImages[0]->Release();
+	m_pSwapChain->ResizeBuffers(2, m_uSize[0], m_uSize[1], DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+	m_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&m_pSwapChainImages[0]));
+	m_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&m_pSwapChainImages[1]));
+
+	auto Rtv = m_pRenderTargetHeap->GetCPUDescriptorHandleForHeapStart();
+	gd3d->pDevice->CreateRenderTargetView(m_pSwapChainImages[0], nullptr, Rtv);
+	Rtv.ptr += gd3d->RenderTargetSize;
+	gd3d->pDevice->CreateRenderTargetView(m_pSwapChainImages[1], nullptr, Rtv);
+}
+
+void System::CWindow::Show() const { ::ShowWindow(m_hWnd, SW_SHOW); }
+void System::CWindow::Hide() const { ::ShowWindow(m_hWnd, SW_HIDE); }
+
+ID3D12Resource *System::CWindow::GetCurrentRenderTargetResource() const { 
 	return m_pSwapChainImages[m_pSwapChain->GetCurrentBackBufferIndex()]; 
 }
 
