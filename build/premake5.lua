@@ -14,7 +14,7 @@ workspace "Talos"
     filter "platforms:Win64"
         system "Windows"
         architecture "x86_64"
-        defines { "XBR_WIN64" }
+        defines { "ENGINE_WIN64" }
         links { "Kernel32", "Shell32", "User32", "Gdi32", "dxgi", "d3d12", "d3dcompiler", "dxguid" }
 
     filter "configurations:Development"
