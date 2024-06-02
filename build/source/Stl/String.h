@@ -4,17 +4,11 @@
 #include <pch.h>
 
 /* --------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
+/* Specializations present in Stl/Private/String.cpp */
+
 template <typename T> uint TStrlen(const T *Str);
-template <> static uint TStrlen<char>(const char *Str) { return (uint)strlen(Str); }
-template <> static uint TStrlen<wchar_t>(const wchar_t *Str) { return (uint)wcslen(Str); }
-
 template <typename T> bool TStrcmp(const T *Left, const T *Right);
-template <> static bool TStrcmp<char>(const char *Left, const char *Right) { return !strcmp(Left, Right); }
-template <> static bool TStrcmp<wchar_t>(const wchar_t *Left, const wchar_t *Right) { return !wcscmp(Left, Right); }
-
 template <typename T> const T *TEmptyString();
-template <> const char *TEmptyString() { return ""; }
-template <> const wchar_t *TEmptyString() { return L""; }
 
 /* --------------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 template <typename T> 
