@@ -399,3 +399,5 @@ FodyWeavers.xsd
 *.vcxproj
 *.filters
 *.sln
+/tools
+data/keymap.xml

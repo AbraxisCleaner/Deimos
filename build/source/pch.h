@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <malloc.h>
 #include <memory.h>
 #include <string.h>
 #include <new.h>
@@ -43,19 +44,19 @@
 typedef unsigned int uint;
 typedef unsigned char uchar;
 
-typedef long long s64;
-typedef long s32;
-typedef short s16;
-typedef char s8;
-typedef unsigned long long u64;
-typedef unsigned long u32;
-typedef unsigned short u16;
-typedef unsigned char u8;
+typedef long long int64;
+typedef long int32;
+typedef short int16;
+typedef char int8;
+typedef unsigned long long uint64;
+typedef unsigned long uint32;
+typedef unsigned short uint16;
+typedef unsigned char uint8;
 
-typedef float f32;
-typedef double f64;
+typedef float float32;
+typedef double float64;
 
-typedef s64 b64;
-typedef s32 b32;
-typedef s16 b16;
-typedef s8 b8;
+typedef int64 bool64;
+typedef int32 bool32;
+typedef int16 bool16;
+typedef int8 bool8;
