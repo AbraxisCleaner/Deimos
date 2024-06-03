@@ -402,3 +402,4 @@ FodyWeavers.xsd
 /tools
 data/keymap.xml
 /build/source/.vscode
+build/source/Engine/IVulkan.hpp
