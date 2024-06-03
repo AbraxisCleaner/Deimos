@@ -101,7 +101,7 @@ bool RHI::Initialize(bool EnableDebugging)
 	// -- Choose adapter;
 	uint numAdapters;
 	vkEnumeratePhysicalDevices(pVk->Instance, &numAdapters, nullptr);
-	auto pAdapters = (VkPhysicalDevice *)_malloca(numAdapters * sizeof(intptr_t));
+	auto pAdapters = (VkPhysicalDevice *)malloc(numAdapters * sizeof(intptr_t));
 	vkEnumeratePhysicalDevices(pVk->Instance, &numAdapters, pAdapters);
 
 	for (auto i = 0; i != numAdapters; ++i) {
@@ -117,7 +117,7 @@ bool RHI::Initialize(bool EnableDebugging)
 		}
 	}
 
-	_freea(pAdapters);
+	free(pAdapters);
 	ASSERT(pVk->Adapter);
 
 	// -- Get device queues.
@@ -125,7 +125,7 @@ bool RHI::Initialize(bool EnableDebugging)
 
 	uint numQueueFamilies;
 	vkGetPhysicalDeviceQueueFamilyProperties(pVk->Adapter, &numQueueFamilies, nullptr);
-	auto pQueueFamilies = (VkQueueFamilyProperties *)_malloca(numQueueFamilies * sizeof(VkQueueFamilyProperties));
+	auto pQueueFamilies = (VkQueueFamilyProperties *)malloc(numQueueFamilies * sizeof(VkQueueFamilyProperties));
 	vkGetPhysicalDeviceQueueFamilyProperties(pVk->Adapter, &numQueueFamilies, pQueueFamilies);
 
 	for (auto i = 0; i != numQueueFamilies; ++i) {
@@ -139,7 +139,7 @@ bool RHI::Initialize(bool EnableDebugging)
 			pVk->QueueFamily = i;
 	}
 
-	_freea(pQueueFamilies);
+	free(pQueueFamilies);
 
 	// -- Create device.
 	const uint numRequiredDeviceExtensions = 1;
@@ -252,7 +252,7 @@ void RHI::ReleaseWindowContext(SWindowContext *pCtx)
 void RHI::PrintAvailableVulkanLayers() {
 	uint num;
 	vkEnumerateInstanceLayerProperties(&num, nullptr);
-	auto props = (VkLayerProperties *)_malloca(num * sizeof(VkLayerProperties));
+	auto props = (VkLayerProperties *)malloc(num * sizeof(VkLayerProperties));
 	vkEnumerateInstanceLayerProperties(&num, props);
 
 	printf("----- Vulkan Layers -----\n");
@@ -260,13 +260,13 @@ void RHI::PrintAvailableVulkanLayers() {
 		printf("\t%s\n", props[i].layerName);
 	}
 
-	_freea(props);
+	free(props);
 }
 
 void RHI::PrintAvailableVulkanInstanceExtensions() {
 	uint num;
 	vkEnumerateInstanceExtensionProperties(nullptr, &num, nullptr);
-	auto props = (VkExtensionProperties *)_malloca(num * sizeof(VkExtensionProperties));
+	auto props = (VkExtensionProperties *)malloc(num * sizeof(VkExtensionProperties));
 	vkEnumerateInstanceExtensionProperties(nullptr, &num, props);
 
 	printf("----- Vulkan Instance Extensions -----\n");
@@ -274,13 +274,13 @@ void RHI::PrintAvailableVulkanInstanceExtensions() {
 		printf("\t%s\n", props[i].extensionName);
 	}
 
-	_freea(props);
+	free(props);
 }
 
 void RHI::PrintAvailableVulkanDeviceExtensions(VkPhysicalDevice Adapter) {
 	uint num;
 	vkEnumerateDeviceExtensionProperties(Adapter, nullptr, &num, nullptr);
-	auto props = (VkExtensionProperties *)_malloca(num * sizeof(VkExtensionProperties));
+	auto props = (VkExtensionProperties *)malloc(num * sizeof(VkExtensionProperties));
 	vkEnumerateDeviceExtensionProperties(Adapter, nullptr, &num, props);
 
 	printf("----- Vulkan Device Extensions -----\n");
@@ -288,13 +288,13 @@ void RHI::PrintAvailableVulkanDeviceExtensions(VkPhysicalDevice Adapter) {
 		printf("\t%s\n", props[i].extensionName);
 	}
 
-	_freea(props);
+	free(props);
 }
 
 bool CheckVulkanLayerPresent(uint32_t Count, ...) {
 	uint num;
 	vkEnumerateInstanceLayerProperties(&num, nullptr);
-	auto props = (VkLayerProperties *)_malloca(num * sizeof(VkLayerProperties));
+	auto props = (VkLayerProperties *)malloc(num * sizeof(VkLayerProperties));
 	vkEnumerateInstanceLayerProperties(&num, props);
 
 	const char *name = (const char *)&Count;
@@ -315,14 +315,14 @@ bool CheckVulkanLayerPresent(uint32_t Count, ...) {
 		}
 	}
 
-	_freea(props);
+	free(props);
 	return (found == Count) ? true : false;
 }
 
 bool CheckVulkanInstanceExtensionPresent(uint32_t Count, ...) {
 	uint num;
 	vkEnumerateInstanceExtensionProperties(nullptr, &num, nullptr);
-	auto props = (VkExtensionProperties *)_malloca(num * sizeof(VkExtensionProperties));
+	auto props = (VkExtensionProperties *)malloc(num * sizeof(VkExtensionProperties));
 	vkEnumerateInstanceExtensionProperties(nullptr, &num, props);
 
 	const char *name = (const char *)&Count;
@@ -343,14 +343,14 @@ bool CheckVulkanInstanceExtensionPresent(uint32_t Count, ...) {
 		}
 	}
 
-	_freea(props);
+	free(props);
 	return (found == Count) ? true : false;
 }
 
 bool CheckVulkanDeviceExtensionPresent(VkPhysicalDevice Adapter, uint32_t Count, ...) {
 	uint num;
 	vkEnumerateDeviceExtensionProperties(Adapter, nullptr, &num, nullptr);
-	auto props = (VkExtensionProperties *)_malloca(num * sizeof(VkExtensionProperties));
+	auto props = (VkExtensionProperties *)malloc(num * sizeof(VkExtensionProperties));
 	vkEnumerateDeviceExtensionProperties(Adapter, nullptr, &num, props);
 
 	const char *name = (const char *)&Count;
@@ -371,6 +371,6 @@ bool CheckVulkanDeviceExtensionPresent(VkPhysicalDevice Adapter, uint32_t Count,
 		}
 	}
 
-	_freea(props);
+	free(props);
 	return (found == Count) ? true : false;
 }
