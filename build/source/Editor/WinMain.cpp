@@ -11,7 +11,10 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nC
 	EditorInfo.iWidth = 1280;
 	EditorInfo.iHeight = 720;
 
+#ifndef _DEVEL
 #ifdef _DEBUG
+	EditorInfo.iCmdLineFlags = EDITOR_FLAG_ALLOW_GAME_CONSOLE;
+
 	char *pCmdLine = GetCommandLineA();
 #endif
 
@@ -22,7 +25,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nC
 				"---- Valid Switches ----\n"
 				"\t-width *\n"
 				"\t-height *\n"
-				"\t-forceDebug | Force vulkan validation.\n"
+				"\t-forceVkValidation | Force vulkan validation.\n"
 				"\t-allowConsole | Allow the dev console to be used with '~'.\n"
 			);
 			return NO_ERROR;
@@ -37,8 +40,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nC
 			while (*c == ' ') ++c;
 			EditorInfo.iHeight = atoi(c);
 		}
-		else if (!strcmp(c, "-forceDebug")) {
-			EditorInfo.iCmdLineFlags |= EDITOR_FLAG_FORCE_VK_DEBUGGING;
+		else if (!strcmp(c, "-forceVkValidation")) {
+			EditorInfo.iCmdLineFlags |= EDITOR_FLAG_FORCE_VK_VALIDATION;
 		}
 		else if (!strcmp(c, "-allowConsole")) {
 			EditorInfo.iCmdLineFlags |= EDITOR_FLAG_ALLOW_GAME_CONSOLE;
@@ -48,6 +51,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nC
 			break;
 		++c;
 	}
+#endif // !_DEVEL
 
 	CEditorApplication EditorApp;
 	gEditor = &EditorApp;
