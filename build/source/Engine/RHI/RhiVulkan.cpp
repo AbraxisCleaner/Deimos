@@ -346,8 +346,10 @@ void RHI::WaitForRendering()
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-bool RHI::CreateWindowContext(HWND hwnd, SWindowContext *pCtx)
+bool RHI::CreateWindowContext(void *pWnd, SWindowContext *pCtx)
 {
+	HWND hwnd = (HWND)pWnd;
+
 #ifdef PLATFORM_WIN64
 	VkWin32SurfaceCreateInfoKHR surfaceInfo = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR };
 	surfaceInfo.hinstance = ::GetModuleHandle(nullptr);

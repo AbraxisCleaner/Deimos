@@ -2,6 +2,7 @@
 #define _ENGINE_RHI_H_
 
 #include <pch.h>
+#include "FileIO.h"
 
 namespace RHI {
 	struct SRhiState;
