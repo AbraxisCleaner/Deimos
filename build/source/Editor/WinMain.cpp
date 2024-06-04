@@ -1,9 +1,6 @@
 #include <pch.h>
 #include <Editor/EditorApplication.h>
 
-#define HANDMADE_MATH_USE_DEGREES
-#include <HandmadeMath.h>
-
 #if defined(_DEBUG)
 int main(int argc, char **argv)
 #else

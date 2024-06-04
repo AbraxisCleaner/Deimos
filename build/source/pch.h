@@ -7,7 +7,6 @@
 #include <malloc.h>
 #include <memory.h>
 #include <string.h>
-#include <math.h>
 #include <new.h>
 
 #define ZeroThat(x) memset(x, 0, sizeof(*x))
