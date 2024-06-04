@@ -9,9 +9,8 @@ workspace "Talos"
     platforms { "Win64" }
     targetdir "bin/%{cfg.buildcfg}"
     objdir "bin/obj/%{cfg.buildcfg}"
-    files { "source/**.h", "source/Stl/**", "source/pch.cpp", "source/vendor/volk.c" }
+    files { "source/**.h", "source/Stl/**", "source/pch.cpp" }
     includedirs { "source", "source/vendor" }
-    libdirs { "source/vendor" }
 
     filter "platforms:Win64"
         system "Windows"

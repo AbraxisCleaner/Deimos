@@ -5,6 +5,9 @@
 
 #include <Windows.h>
 
+// NOTE: Filmic Tonemapping + Hable's Curve
+
+
 RHI::SVulkanState _Vk = {};
 RHI::SVulkanState *RHI::pVk = &_Vk;
 
@@ -124,7 +127,7 @@ bool RHI::Initialize(bool EnableDebugging)
 	for (auto i = 0; i != numQueueFamilies; ++i) {
 		auto _GetPhysicalDeviceWin32PresentationSupport = (PFN_vkGetPhysicalDeviceWin32PresentationSupportKHR)vkGetInstanceProcAddr(pVk->Instance, "vkGetPhysicalDeviceWin32PresentationSupportKHR");
 		ASSERT(_GetPhysicalDeviceWin32PresentationSupport);
-#ifdef PLATFORM_WIN64
+#ifdef ENGINE_WIN64
 		VkBool32 presentationSupport = _GetPhysicalDeviceWin32PresentationSupport(pVk->Adapter, i);
 #endif
 
@@ -181,7 +184,7 @@ void RHI::Release()
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 bool RHI::CreateWindowContext(HWND hwnd, SWindowContext *pCtx)
 {
-#ifdef PLATFORM_WIN64
+#ifdef ENGINE_WIN64
 	VkWin32SurfaceCreateInfoKHR surfaceInfo = { VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR };
 	surfaceInfo.hinstance = ::GetModuleHandle(nullptr);
 	surfaceInfo.hwnd = hwnd;
