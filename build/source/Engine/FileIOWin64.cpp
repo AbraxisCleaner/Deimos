@@ -24,3 +24,30 @@ bool ReadEntireFile(const TCHAR *Path, SFileBlob *pBlob)
 
 	return false;
 }
+
+bool MapFile(const TCHAR *Path, SMappedFile *pOut)
+{
+	pFile->Handle = (void *)::CreateFile(Path, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 128, nullptr);
+	if (pFile->Handle != (void *)(HANDLE)-1) {
+		LARGE_INTEGER Li;
+		::GetFileSize((HANDLE)pFile->Handle, &Li);
+		pFile->Size = Li.QuadPart;
+
+		HANDLE mapping = ::CreateFileMapping((HANDLE)pFile->Handle, nullptr, PAGE_READWRITE, 0, 0, nullptr);
+		pFile->pView = ::MapViewOfFile(mapping, FILE_MAP_WRITE, 0, 0, pFile->Size);
+
+		return true;
+	}
+	return false;
+}
+
+void UnmapFile(SMappedFile *pFile)
+{
+	if (pFile->pView) {
+		::UnmapViewOfFile(pFile->pView);
+		HANDLE mapping = ::CreateFileMappingW((HANDLE)pFile->Handle, nullptr, PAGE_READWRITE, 0, 0, nullptr);
+		::CloseHandle(mapping);
+		::CloseHandle((HANDLE)pFile->Handle);
+		ZeroThat(pFile);
+	}
+}
