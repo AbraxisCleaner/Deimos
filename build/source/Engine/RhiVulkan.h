@@ -1,6 +1,6 @@
 #pragma once
-#include <pch.h>
-#include <Stl/Container.h>
+#include "pch.h"
+#include "Rhi.h"
 
 #include <volk.h>
 
@@ -22,9 +22,6 @@ namespace RHI {
 		VkFramebuffer Framebuffers[2];
 		VkSemaphore ImageSemaphore;
 	};
-	bool CreateWindowContext(HWND hwnd, SWindowContext *pCtx);
-	void ReleaseWindowContext(SWindowContext *pCtx);
-	void ResizeWindowContext(SWindowContext *pCtx, uint NewWidth, uint NewHeight);
 
 	struct SRhiState
 	{
@@ -47,13 +44,4 @@ namespace RHI {
 		VkCommandPool CommandPool;
 		VkCommandBuffer Cmd;
 	};
-	extern SRhiState *pVk;
-
-	bool Initialize(bool EnableDebugging);
-	void Release();
-
-	void WaitForRendering();
-
-	inline void SetRhiState(SRhiState *pState) { pVk = pState; }
-	inline SRhiState *GetRhiState() { return pVk; }
 }
