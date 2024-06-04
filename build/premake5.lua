@@ -3,19 +3,20 @@ workspace "Talos"
     language "C++"
     cppdialect "C++17"
     conformancemode "Off"
+    justmycode "Off"
     pchheader "pch.h"
-    pchsource "pch.cpp"
+    pchsource "source/pch.cpp"
     platforms { "Win64" }
     targetdir "bin/%{cfg.buildcfg}"
     objdir "bin/obj/%{cfg.buildcfg}"
     files { "source/**.h", "source/Stl/**", "source/pch.cpp" }
-    justmycode "Off"
+    includedirs { "source", "source/vendor" }
 
     filter "platforms:Win64"
         system "Windows"
         architecture "x86_64"
-        defines { "ENGINE_WIN64" }
-        links { "Kernel32", "Shell32", "User32", "Gdi32", "dxgi", "d3d12", "d3dcompiler", "dxguid" }
+        defines { "PLATFORM_WIN64", "VK_USE_PLATFORM_WIN32_KHR" }
+        links { "Kernel32", "Shell32", "User32", "Gdi32", "vulkan-1.lib" }
 
     filter "configurations:Development"
         defines { "_DEVEL", "_DEBUG" }
@@ -30,8 +31,11 @@ workspace "Talos"
         optimize "On"
 
 project "Editor"
-    kind "ConsoleApp"
     files { "source/Engine/**", "source/Editor/**" }
-    includedirs { "source", "source/vendor" }
     pchheader "pch.h"
-    pchsource "pch.cpp"
+    filter "configurations:Development"
+        kind "ConsoleApp"
+    filter "configurations:Debug"
+        kind "ConsoleApp"
+    filter "configurations:Release"
+        kind "WindowedApp"

@@ -3,10 +3,6 @@
 
 #include "RhiVulkan.h"
 
-#ifdef ENGINE_WIN64
-#	pragma comment (lib, "vulkan-1.lib")
-#endif
-
 #include <Windows.h>
 
 // NOTE: Filmic Tonemapping + Hable's Curve
