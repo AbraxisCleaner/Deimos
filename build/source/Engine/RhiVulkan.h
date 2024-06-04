@@ -16,16 +16,20 @@ namespace RHI {
 	struct SWindowContext
 	{
 		VkSurfaceKHR Surface;
+		VkSwapchainCreateInfoKHR SwapchainInfo;
 		VkSwapchainKHR Swapchain;
 		VkImageView ImageViews[2];
+		VkFramebuffer Framebuffers[2];
+		VkSemaphore ImageSemaphore;
 	};
 	bool CreateWindowContext(HWND hwnd, SWindowContext *pCtx);
 	void ReleaseWindowContext(SWindowContext *pCtx);
+	void ResizeWindowContext(SWindowContext *pCtx, uint NewWidth, uint NewHeight);
 
-	struct SVulkanState
+	struct SRhiState
 	{
 		VkAllocationCallbacks Allocator;
-		bool Debugging;
+		bool bValidate;
 
 		VkInstance Instance;
 		VkDebugUtilsMessengerEXT DebugMessenger;
@@ -33,12 +37,23 @@ namespace RHI {
 		VkDevice Device;
 		VkQueue MainQueue;
 		uint QueueFamily;
+		VkFence QueueFence;
+		VkSemaphore RenderSemaphore;
+
+		VkRenderPass RenderPass;
+		VkPipelineLayout PipelineLayout;
+		VkPipeline Pipeline;
+
+		VkCommandPool CommandPool;
+		VkCommandBuffer Cmd;
 	};
-	extern SVulkanState *pVk;
+	extern SRhiState *pVk;
 
 	bool Initialize(bool EnableDebugging);
 	void Release();
 
-	inline void SetVulkanState(SVulkanState *pState) { pVk = pState; }
-	inline SVulkanState *GetVulkanState() { return pVk; }
+	void WaitForRendering();
+
+	inline void SetRhiState(SRhiState *pState) { pVk = pState; }
+	inline SRhiState *GetRhiState() { return pVk; }
 }
