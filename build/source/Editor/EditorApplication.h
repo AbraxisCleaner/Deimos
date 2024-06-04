@@ -11,7 +11,7 @@ struct SEditorCreateInfo
 	int iCmdLineFlags;
 };
 
-#define EDITOR_FLAG_FORCE_VK_DEBUGGING 0x01
+#define EDITOR_FLAG_FORCE_VK_VALIDATION 0x01
 #define EDITOR_FLAG_ALLOW_GAME_CONSOLE 0x02
 
 #define EDITOR_WND_QUIT 0x01
