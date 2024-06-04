@@ -1,4 +1,4 @@
-workspace "Talos"
+workspace "Solution"
     configurations { "Development", "Debug", "Release" }
     language "C++"
     cppdialect "C++17"
