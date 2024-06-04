@@ -219,55 +219,37 @@ extern "C"
 #define HMM_MOD(a, m) (((a) % (m)) >= 0 ? ((a) % (m)) : (((a) % (m)) + (m)))
 #define HMM_SQUARE(x) ((x) * (x))
 
-typedef union vec2
+union Vec2
 {
-    vec2() : X(0), Y(0) {}
-    vec2(float X) : X(X), Y(0) {}
-    vec2(float X, float Y) : X(X), Y(Y) {}
+    Vec2() : x(0), y(0) {}
+    Vec2(float x, float y = 0) : Elements{ x, y } {}
 
-    struct
-    {
-        float X, Y;
-    };
-
-    struct
-    {
-        float U, V;
-    };
-
-    struct
-    {
-        float Left, Right;
-    };
-
-    struct
-    {
-        float Width, Height;
-    };
-
+    struct { float x, y; };
     float Elements[2];
 
-#ifdef __cplusplus
     inline operator float *() { return Elements; }
 
-    inline float &operator[](const int &Index)
-    {
-        return Elements[Index];
-    }
+    inline float &operator[](const int &Index) { return Elements[Index]; }
+    inline bool operator >(const Vec2 &other) { if (x > other.x && y > other.y) return true; return false; }
+    inline bool operator <(const Vec2 &other) { if (x < other.x && y < other.y) return true; return false; }
 
-    inline bool operator >(const vec2 &other) {
-        if (X > other.X && Y > other.Y)
-            return true;
-        return false;
-    }
-
-    inline bool operator <(const vec2 &other) {
-        if (X < other.X && Y < other.Y)
-            return true;
-        return false;
-    }
-#endif
-} vec2;
+	inline void operator +=(float Right) { x += Right; y += Right; }
+	inline void operator -=(float Right) { x -= Right; y -= Right; }
+	inline void operator *=(float Right) { x *= Right; y *= Right; }
+	inline void operator /=(float Right) { x /= Right; y /= Right; }
+	inline void operator +=(Vec2 &Right) { x += Right.x; y += Right.y; }
+	inline void operator -=(Vec2 &Right) { x -= Right.x; y -= Right.y; }
+	inline void operator *=(Vec2 &Right) { x *= Right.x; y *= Right.y; }
+	inline void operator /=(Vec2 &Right) { x /= Right.x; y /= Right.y; }
+	inline Vec2 operator +(float Right) { return Vec2(x + Right, y + Right); }
+	inline Vec2 operator -(float Right) { return Vec2(x - Right, y - Right); }
+	inline Vec2 operator *(float Right) { return Vec2(x * Right, y * Right); }
+	inline Vec2 operator /(float Right) { return Vec2(x / Right, y / Right); }
+	inline Vec2 operator +(Vec2 &Right) { return Vec2(x + Right.x, y + Right.y); }
+	inline Vec2 operator -(Vec2 &Right) { return Vec2(x - Right.x, y - Right.y); }
+	inline Vec2 operator *(Vec2 &Right) { return Vec2(x * Right.x, y * Right.y); }
+	inline Vec2 operator /(Vec2 &Right) { return Vec2(x / Right.x, y / Right.y); }
+};
 
 typedef union vec3
 {
@@ -291,26 +273,26 @@ typedef union vec3
 
     struct
     {
-        vec2 XY;
+        Vec2 XY;
         float _Ignored0;
     };
 
     struct
     {
         float _Ignored1;
-        vec2 YZ;
+        Vec2 YZ;
     };
 
     struct
     {
-        vec2 UV;
+        Vec2 UV;
         float _Ignored2;
     };
 
     struct
     {
         float _Ignored3;
-        vec2 VW;
+        Vec2 VW;
     };
 
     float Elements[3];
@@ -371,7 +353,7 @@ typedef union vec4
 
     struct
     {
-        vec2 XY;
+        Vec2 XY;
         float _Ignored0;
         float _Ignored1;
     };
@@ -379,7 +361,7 @@ typedef union vec4
     struct
     {
         float _Ignored2;
-        vec2 YZ;
+        Vec2 YZ;
         float _Ignored3;
     };
 
@@ -387,7 +369,7 @@ typedef union vec4
     {
         float _Ignored4;
         float _Ignored5;
-        vec2 ZW;
+        Vec2 ZW;
     };
 
     float Elements[4];
@@ -408,13 +390,13 @@ typedef union vec4
 
 typedef union mat2
 {
-    mat2() : Columns{ vec2(1, 0), vec2(0, 1) } {}
+    mat2() : Columns{ Vec2(1, 0), Vec2(0, 1) } {}
 
     float Elements[2][2];
-    vec2 Columns[2];
+    Vec2 Columns[2];
 
 #ifdef __cplusplus
-    inline vec2 &operator[](const int &Index)
+    inline Vec2 &operator[](const int &Index)
     {
         return Columns[Index];
     }
@@ -621,13 +603,13 @@ static inline float HMM_Clamp(float Min, float Value, float Max)
  */
 
 COVERAGE(HMM_V2, 1)
-static inline vec2 HMM_V2(float X, float Y)
+static inline Vec2 HMM_V2(float X, float Y)
 {
     ASSERT_COVERED(HMM_V2);
 
-    vec2 Result;
-    Result.X = X;
-    Result.Y = Y;
+    Vec2 Result;
+    Result.x = X;
+    Result.y = Y;
 
     return Result;
 }
@@ -687,13 +669,13 @@ static inline vec4 HMM_V4V(vec3 Vector, float W)
  */
 
 COVERAGE(HMM_AddV2, 1)
-static inline vec2 HMM_AddV2(vec2 Left, vec2 Right)
+static inline Vec2 HMM_AddV2(Vec2 Left, Vec2 Right)
 {
     ASSERT_COVERED(HMM_AddV2);
 
-    vec2 Result;
-    Result.X = Left.X + Right.X;
-    Result.Y = Left.Y + Right.Y;
+    Vec2 Result;
+    Result.x = Left.x + Right.x;
+    Result.y = Left.y + Right.y;
 
     return Result;
 }
@@ -731,13 +713,13 @@ static inline vec4 HMM_AddV4(vec4 Left, vec4 Right)
 }
 
 COVERAGE(HMM_SubV2, 1)
-static inline vec2 HMM_SubV2(vec2 Left, vec2 Right)
+static inline Vec2 HMM_SubV2(Vec2 Left, Vec2 Right)
 {
     ASSERT_COVERED(HMM_SubV2);
 
-    vec2 Result;
-    Result.X = Left.X - Right.X;
-    Result.Y = Left.Y - Right.Y;
+    Vec2 Result;
+    Result.x = Left.x - Right.x;
+    Result.y = Left.y - Right.y;
 
     return Result;
 }
@@ -775,25 +757,25 @@ static inline vec4 HMM_SubV4(vec4 Left, vec4 Right)
 }
 
 COVERAGE(HMM_MulV2, 1)
-static inline vec2 HMM_MulV2(vec2 Left, vec2 Right)
+static inline Vec2 HMM_MulV2(Vec2 Left, Vec2 Right)
 {
     ASSERT_COVERED(HMM_MulV2);
 
-    vec2 Result;
-    Result.X = Left.X * Right.X;
-    Result.Y = Left.Y * Right.Y;
+    Vec2 Result;
+    Result.x = Left.x * Right.x;
+    Result.y = Left.y * Right.y;
 
     return Result;
 }
 
 COVERAGE(HMM_MulV2F, 1)
-static inline vec2 HMM_MulV2F(vec2 Left, float Right)
+static inline Vec2 HMM_MulV2F(Vec2 Left, float Right)
 {
     ASSERT_COVERED(HMM_MulV2F);
 
-    vec2 Result;
-    Result.X = Left.X * Right;
-    Result.Y = Left.Y * Right;
+    Vec2 Result;
+    Result.x = Left.x * Right;
+    Result.y = Left.y * Right;
 
     return Result;
 }
@@ -864,25 +846,25 @@ static inline vec4 HMM_MulV4F(vec4 Left, float Right)
 }
 
 COVERAGE(HMM_DivV2, 1)
-static inline vec2 HMM_DivV2(vec2 Left, vec2 Right)
+static inline Vec2 HMM_DivV2(Vec2 Left, Vec2 Right)
 {
     ASSERT_COVERED(HMM_DivV2);
 
-    vec2 Result;
-    Result.X = Left.X / Right.X;
-    Result.Y = Left.Y / Right.Y;
+    Vec2 Result;
+    Result.x = Left.x / Right.x;
+    Result.y = Left.y / Right.y;
 
     return Result;
 }
 
 COVERAGE(HMM_DivV2F, 1)
-static inline vec2 HMM_DivV2F(vec2 Left, float Right)
+static inline Vec2 HMM_DivV2F(Vec2 Left, float Right)
 {
     ASSERT_COVERED(HMM_DivV2F);
 
-    vec2 Result;
-    Result.X = Left.X / Right;
-    Result.Y = Left.Y / Right;
+    Vec2 Result;
+    Result.x = Left.x / Right;
+    Result.y = Left.y / Right;
 
     return Result;
 }
@@ -953,10 +935,10 @@ static inline vec4 HMM_DivV4F(vec4 Left, float Right)
 }
 
 COVERAGE(HMM_EqV2, 1)
-static inline HMM_Bool HMM_EqV2(vec2 Left, vec2 Right)
+static inline HMM_Bool HMM_EqV2(Vec2 Left, Vec2 Right)
 {
     ASSERT_COVERED(HMM_EqV2);
-    return Left.X == Right.X && Left.Y == Right.Y;
+    return Left.x == Right.x && Left.y == Right.y;
 }
 
 COVERAGE(HMM_EqV3, 1)
@@ -974,10 +956,10 @@ static inline HMM_Bool HMM_EqV4(vec4 Left, vec4 Right)
 }
 
 COVERAGE(HMM_DotV2, 1)
-static inline float HMM_DotV2(vec2 Left, vec2 Right)
+static inline float HMM_DotV2(Vec2 Left, Vec2 Right)
 {
     ASSERT_COVERED(HMM_DotV2);
-    return (Left.X * Right.X) + (Left.Y * Right.Y);
+    return (Left.x * Right.x) + (Left.y * Right.y);
 }
 
 COVERAGE(HMM_DotV3, 1)
@@ -1030,7 +1012,7 @@ static inline vec3 HMM_Cross(vec3 Left, vec3 Right)
  */
 
 COVERAGE(HMM_LenSqrV2, 1)
-static inline float HMM_LenSqrV2(vec2 A)
+static inline float HMM_LenSqrV2(Vec2 A)
 {
     ASSERT_COVERED(HMM_LenSqrV2);
     return HMM_DotV2(A, A);
@@ -1051,7 +1033,7 @@ static inline float HMM_LenSqrV4(vec4 A)
 }
 
 COVERAGE(HMM_LenV2, 1)
-static inline float HMM_LenV2(vec2 A)
+static inline float HMM_LenV2(Vec2 A)
 {
     ASSERT_COVERED(HMM_LenV2);
     return HMM_SqrtF(HMM_LenSqrV2(A));
@@ -1072,7 +1054,7 @@ static inline float HMM_LenV4(vec4 A)
 }
 
 COVERAGE(HMM_NormV2, 1)
-static inline vec2 HMM_NormV2(vec2 A)
+static inline Vec2 HMM_NormV2(Vec2 A)
 {
     ASSERT_COVERED(HMM_NormV2);
     return HMM_MulV2F(A, HMM_InvSqrtF(HMM_DotV2(A, A)));
@@ -1097,7 +1079,7 @@ static inline vec4 HMM_NormV4(vec4 A)
  */
 
 COVERAGE(HMM_LerpV2, 1)
-static inline vec2 HMM_LerpV2(vec2 A, float Time, vec2 B) 
+static inline Vec2 HMM_LerpV2(Vec2 A, float Time, Vec2 B) 
 {
     ASSERT_COVERED(HMM_LerpV2);
     return HMM_AddV2(HMM_MulV2F(A, 1.0f - Time), HMM_MulV2F(B, Time));
@@ -1205,17 +1187,17 @@ static inline mat2 HMM_SubM2(mat2 Left, mat2 Right)
 }
 
 COVERAGE(HMM_MulM2V2, 1)
-static inline vec2 HMM_MulM2V2(mat2 Matrix, vec2 Vector)
+static inline Vec2 HMM_MulM2V2(mat2 Matrix, Vec2 Vector)
 {
     ASSERT_COVERED(HMM_MulM2V2);
     
-    vec2 Result;
+    Vec2 Result;
 
-    Result.X = Vector.Elements[0] * Matrix.Columns[0].X;
-    Result.Y = Vector.Elements[0] * Matrix.Columns[0].Y;
+    Result.x = Vector.Elements[0] * Matrix.Columns[0].x;
+    Result.y = Vector.Elements[0] * Matrix.Columns[0].y;
 
-    Result.X += Vector.Elements[1] * Matrix.Columns[1].X;
-    Result.Y += Vector.Elements[1] * Matrix.Columns[1].Y;
+    Result.x += Vector.Elements[1] * Matrix.Columns[1].x;
+    Result.y += Vector.Elements[1] * Matrix.Columns[1].y;
 
     return Result;    
 }
@@ -2548,7 +2530,7 @@ static inline HMM_Quat HMM_QFromAxisAngle_LH(vec3 Axis, float AngleOfRotation)
 #ifdef __cplusplus
 
 COVERAGE(HMM_LenV2CPP, 1)
-static inline float HMM_Len(vec2 A)
+static inline float HMM_Len(Vec2 A)
 {
     ASSERT_COVERED(HMM_LenV2CPP);
     return HMM_LenV2(A);
@@ -2569,7 +2551,7 @@ static inline float HMM_Len(vec4 A)
 }
 
 COVERAGE(HMM_LenSqrV2CPP, 1)
-static inline float HMM_LenSqr(vec2 A)
+static inline float HMM_LenSqr(Vec2 A)
 {
     ASSERT_COVERED(HMM_LenSqrV2CPP);
     return HMM_LenSqrV2(A);
@@ -2590,7 +2572,7 @@ static inline float HMM_LenSqr(vec4 A)
 }
 
 COVERAGE(HMM_NormV2CPP, 1)
-static inline vec2 HMM_Norm(vec2 A)
+static inline Vec2 HMM_Norm(Vec2 A)
 {
     ASSERT_COVERED(HMM_NormV2CPP);
     return HMM_NormV2(A);
@@ -2618,7 +2600,7 @@ static inline HMM_Quat HMM_Norm(HMM_Quat A)
 }
 
 COVERAGE(HMM_DotV2CPP, 1)
-static inline float HMM_Dot(vec2 Left, vec2 VecTwo)
+static inline float HMM_Dot(Vec2 Left, Vec2 VecTwo)
 {
     ASSERT_COVERED(HMM_DotV2CPP);
     return HMM_DotV2(Left, VecTwo);
@@ -2639,7 +2621,7 @@ static inline float HMM_Dot(vec4 Left, vec4 VecTwo)
 }
  
 COVERAGE(HMM_LerpV2CPP, 1)
-static inline vec2 HMM_Lerp(vec2 Left, float Time, vec2 Right) 
+static inline Vec2 HMM_Lerp(Vec2 Left, float Time, Vec2 Right) 
 {
     ASSERT_COVERED(HMM_LerpV2CPP);
     return HMM_LerpV2(Left, Time, Right);
@@ -2730,7 +2712,7 @@ static inline float HMM_Dot(HMM_Quat QuatOne, HMM_Quat QuatTwo)
 }
 
 COVERAGE(HMM_AddV2CPP, 1)
-static inline vec2 HMM_Add(vec2 Left, vec2 Right)
+static inline Vec2 HMM_Add(Vec2 Left, Vec2 Right)
 {
     ASSERT_COVERED(HMM_AddV2CPP);
     return HMM_AddV2(Left, Right);
@@ -2779,7 +2761,7 @@ static inline HMM_Quat HMM_Add(HMM_Quat Left, HMM_Quat Right)
 }
 
 COVERAGE(HMM_SubV2CPP, 1)
-static inline vec2 HMM_Sub(vec2 Left, vec2 Right)
+static inline Vec2 HMM_Sub(Vec2 Left, Vec2 Right)
 {
     ASSERT_COVERED(HMM_SubV2CPP);
     return HMM_SubV2(Left, Right);
@@ -2828,14 +2810,14 @@ static inline HMM_Quat HMM_Sub(HMM_Quat Left, HMM_Quat Right)
 }
 
 COVERAGE(HMM_MulV2CPP, 1)
-static inline vec2 HMM_Mul(vec2 Left, vec2 Right)
+static inline Vec2 HMM_Mul(Vec2 Left, Vec2 Right)
 {
     ASSERT_COVERED(HMM_MulV2CPP);
     return HMM_MulV2(Left, Right);
 }
 
 COVERAGE(HMM_MulV2FCPP, 1)
-static inline vec2 HMM_Mul(vec2 Left, float Right)
+static inline Vec2 HMM_Mul(Vec2 Left, float Right)
 {
     ASSERT_COVERED(HMM_MulV2FCPP);
     return HMM_MulV2F(Left, Right);
@@ -2912,7 +2894,7 @@ static inline mat4 HMM_Mul(mat4 Left, float Right)
 }
 
 COVERAGE(HMM_MulM2V2CPP, 1)
-static inline vec2 HMM_Mul(mat2 Matrix, vec2 Vector)
+static inline Vec2 HMM_Mul(mat2 Matrix, Vec2 Vector)
 {
     ASSERT_COVERED(HMM_MulM2V2CPP);
     return HMM_MulM2V2(Matrix, Vector);
@@ -2947,14 +2929,14 @@ static inline HMM_Quat HMM_Mul(HMM_Quat Left, float Right)
 }
 
 COVERAGE(HMM_DivV2CPP, 1)
-static inline vec2 HMM_Div(vec2 Left, vec2 Right)
+static inline Vec2 HMM_Div(Vec2 Left, Vec2 Right)
 {
     ASSERT_COVERED(HMM_DivV2CPP);
     return HMM_DivV2(Left, Right);
 }
 
 COVERAGE(HMM_DivV2FCPP, 1)
-static inline vec2 HMM_Div(vec2 Left, float Right)
+static inline Vec2 HMM_Div(Vec2 Left, float Right)
 {
     ASSERT_COVERED(HMM_DivV2FCPP);
     return HMM_DivV2F(Left, Right);
@@ -3017,7 +2999,7 @@ static inline HMM_Quat HMM_Div(HMM_Quat Left, float Right)
 }
 
 COVERAGE(HMM_EqV2CPP, 1)
-static inline HMM_Bool HMM_Eq(vec2 Left, vec2 Right)
+static inline HMM_Bool HMM_Eq(Vec2 Left, Vec2 Right)
 {
     ASSERT_COVERED(HMM_EqV2CPP);
     return HMM_EqV2(Left, Right);
@@ -3038,7 +3020,7 @@ static inline HMM_Bool HMM_Eq(vec4 Left, vec4 Right)
 }
 
 COVERAGE(HMM_AddV2Op, 1)
-static inline vec2 operator+(vec2 Left, vec2 Right)
+static inline Vec2 operator+(Vec2 Left, Vec2 Right)
 {
     ASSERT_COVERED(HMM_AddV2Op);
     return HMM_AddV2(Left, Right);
@@ -3087,7 +3069,7 @@ static inline HMM_Quat operator+(HMM_Quat Left, HMM_Quat Right)
 }
 
 COVERAGE(HMM_SubV2Op, 1)
-static inline vec2 operator-(vec2 Left, vec2 Right)
+static inline Vec2 operator-(Vec2 Left, Vec2 Right)
 {
     ASSERT_COVERED(HMM_SubV2Op);
     return HMM_SubV2(Left, Right);
@@ -3136,7 +3118,7 @@ static inline HMM_Quat operator-(HMM_Quat Left, HMM_Quat Right)
 }
 
 COVERAGE(HMM_MulV2Op, 1)
-static inline vec2 operator*(vec2 Left, vec2 Right)
+static inline Vec2 operator*(Vec2 Left, Vec2 Right)
 {
     ASSERT_COVERED(HMM_MulV2Op);
     return HMM_MulV2(Left, Right);
@@ -3185,7 +3167,7 @@ static inline HMM_Quat operator*(HMM_Quat Left, HMM_Quat Right)
 }
 
 COVERAGE(HMM_MulV2FOp, 1)
-static inline vec2 operator*(vec2 Left, float Right)
+static inline Vec2 operator*(Vec2 Left, float Right)
 {
     ASSERT_COVERED(HMM_MulV2FOp);
     return HMM_MulV2F(Left, Right);
@@ -3234,7 +3216,7 @@ static inline HMM_Quat operator*(HMM_Quat Left, float Right)
 }
 
 COVERAGE(HMM_MulV2FOpLeft, 1)
-static inline vec2 operator*(float Left, vec2 Right)
+static inline Vec2 operator*(float Left, Vec2 Right)
 {
     ASSERT_COVERED(HMM_MulV2FOpLeft);
     return HMM_MulV2F(Right, Left);
@@ -3283,7 +3265,7 @@ static inline HMM_Quat operator*(float Left, HMM_Quat Right)
 }
 
 COVERAGE(HMM_MulM2V2Op, 1)
-static inline vec2 operator*(mat2 Matrix, vec2 Vector)
+static inline Vec2 operator*(mat2 Matrix, Vec2 Vector)
 {
     ASSERT_COVERED(HMM_MulM2V2Op);
     return HMM_MulM2V2(Matrix, Vector);
@@ -3304,7 +3286,7 @@ static inline vec4 operator*(mat4 Matrix, vec4 Vector)
 }
 
 COVERAGE(HMM_DivV2Op, 1)
-static inline vec2 operator/(vec2 Left, vec2 Right)
+static inline Vec2 operator/(Vec2 Left, Vec2 Right)
 {
     ASSERT_COVERED(HMM_DivV2Op);
     return HMM_DivV2(Left, Right);
@@ -3325,7 +3307,7 @@ static inline vec4 operator/(vec4 Left, vec4 Right)
 }
 
 COVERAGE(HMM_DivV2FOp, 1)
-static inline vec2 operator/(vec2 Left, float Right)
+static inline Vec2 operator/(Vec2 Left, float Right)
 {
     ASSERT_COVERED(HMM_DivV2FOp);
     return HMM_DivV2F(Left, Right);
@@ -3374,7 +3356,7 @@ static inline HMM_Quat operator/(HMM_Quat Left, float Right)
 }
 
 COVERAGE(HMM_AddV2Assign, 1)
-static inline vec2 &operator+=(vec2 &Left, vec2 Right)
+static inline Vec2 &operator+=(Vec2 &Left, Vec2 Right)
 {
     ASSERT_COVERED(HMM_AddV2Assign);
     return Left = Left + Right;
@@ -3423,7 +3405,7 @@ static inline HMM_Quat &operator+=(HMM_Quat &Left, HMM_Quat Right)
 }
 
 COVERAGE(HMM_SubV2Assign, 1)
-static inline vec2 &operator-=(vec2 &Left, vec2 Right)
+static inline Vec2 &operator-=(Vec2 &Left, Vec2 Right)
 {
     ASSERT_COVERED(HMM_SubV2Assign);
     return Left = Left - Right;
@@ -3472,7 +3454,7 @@ static inline HMM_Quat &operator-=(HMM_Quat &Left, HMM_Quat Right)
 }
 
 COVERAGE(HMM_MulV2Assign, 1)
-static inline vec2 &operator*=(vec2 &Left, vec2 Right)
+static inline Vec2 &operator*=(Vec2 &Left, Vec2 Right)
 {
     ASSERT_COVERED(HMM_MulV2Assign);
     return Left = Left * Right;
@@ -3493,7 +3475,7 @@ static inline vec4 &operator*=(vec4 &Left, vec4 Right)
 }
 
 COVERAGE(HMM_MulV2FAssign, 1)
-static inline vec2 &operator*=(vec2 &Left, float Right)
+static inline Vec2 &operator*=(Vec2 &Left, float Right)
 {
     ASSERT_COVERED(HMM_MulV2FAssign);
     return Left = Left * Right;
@@ -3542,7 +3524,7 @@ static inline HMM_Quat &operator*=(HMM_Quat &Left, float Right)
 }
 
 COVERAGE(HMM_DivV2Assign, 1)
-static inline vec2 &operator/=(vec2 &Left, vec2 Right)
+static inline Vec2 &operator/=(Vec2 &Left, Vec2 Right)
 {
     ASSERT_COVERED(HMM_DivV2Assign);
     return Left = Left / Right;
@@ -3563,7 +3545,7 @@ static inline vec4 &operator/=(vec4 &Left, vec4 Right)
 }
 
 COVERAGE(HMM_DivV2FAssign, 1)
-static inline vec2 &operator/=(vec2 &Left, float Right)
+static inline Vec2 &operator/=(Vec2 &Left, float Right)
 {
     ASSERT_COVERED(HMM_DivV2FAssign);
     return Left = Left / Right;
@@ -3598,7 +3580,7 @@ static inline HMM_Quat &operator/=(HMM_Quat &Left, float Right)
 }
 
 COVERAGE(HMM_EqV2Op, 1)
-static inline HMM_Bool operator==(vec2 Left, vec2 Right)
+static inline HMM_Bool operator==(Vec2 Left, Vec2 Right)
 {
     ASSERT_COVERED(HMM_EqV2Op);
     return HMM_EqV2(Left, Right);
@@ -3619,7 +3601,7 @@ static inline HMM_Bool operator==(vec4 Left, vec4 Right)
 }
 
 COVERAGE(HMM_EqV2OpNot, 1)
-static inline HMM_Bool operator!=(vec2 Left, vec2 Right)
+static inline HMM_Bool operator!=(Vec2 Left, Vec2 Right)
 {
     ASSERT_COVERED(HMM_EqV2OpNot);
     return !HMM_EqV2(Left, Right);
@@ -3640,13 +3622,13 @@ static inline HMM_Bool operator!=(vec4 Left, vec4 Right)
 }
 
 COVERAGE(HMM_UnaryMinusV2, 1)
-static inline vec2 operator-(vec2 In)
+static inline Vec2 operator-(Vec2 In)
 {
     ASSERT_COVERED(HMM_UnaryMinusV2);
 
-    vec2 Result;
-    Result.X = -In.X;
-    Result.Y = -In.Y;
+    Vec2 Result;
+    Result.x = -In.x;
+    Result.y = -In.y;
 
     return Result;
 }
