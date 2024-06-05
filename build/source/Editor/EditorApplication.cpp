@@ -2,7 +2,7 @@
 #include "Engine/DebugLog.h"
 #include "EditorApplication.h"
 #include "Engine/InputKey.inl"
-#include "Engine/RhiVulkan.h"
+#include "Engine/Rhi/RhiVulkan.h"
 
 CEditorApplication *gEditor = nullptr;
 
@@ -27,39 +27,39 @@ void CEditorApplication::Tick()
 	RHI::WaitForRendering();
 
 	uint32_t imageIndex;
-	vkAcquireNextImageKHR(RHI::pVk->Device, m_MainWndContext.Swapchain, 0, m_MainWndContext.ImageSemaphore, VK_NULL_HANDLE, &imageIndex);
+	vkAcquireNextImageKHR(RHI::gRhi->Device, m_MainWndContext.Swapchain, 0, m_MainWndContext.ImageSemaphore, VK_NULL_HANDLE, &imageIndex);
 
 	VkCommandBufferBeginInfo cmdBegin = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
-	vkResetCommandBuffer(RHI::pVk->Cmd, 0);
-	vkBeginCommandBuffer(RHI::pVk->Cmd, &cmdBegin);
+	vkResetCommandBuffer(RHI::gRhi->Cmd, 0);
+	vkBeginCommandBuffer(RHI::gRhi->Cmd, &cmdBegin);
 
 	// RenderPass
 	VkClearValue clearColor = { { { 0.0f, 0.0f, 0.0f, 1.0f } } };
 
 	VkRenderPassBeginInfo renderPass = { VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
-	renderPass.renderPass = RHI::pVk->RenderPass;
+	renderPass.renderPass = RHI::gRhi->RenderPass;
 	renderPass.framebuffer = m_MainWndContext.Framebuffers[imageIndex];
 	renderPass.renderArea.extent = m_MainWndContext.SwapchainInfo.imageExtent;
 	renderPass.pClearValues = &clearColor;
 	renderPass.clearValueCount = 1;
 	
-	vkCmdBeginRenderPass(RHI::pVk->Cmd, &renderPass, VK_SUBPASS_CONTENTS_INLINE);
-	vkCmdBindPipeline(RHI::pVk->Cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, RHI::pVk->Pipeline);
+	vkCmdBeginRenderPass(RHI::gRhi->Cmd, &renderPass, VK_SUBPASS_CONTENTS_INLINE);
+	vkCmdBindPipeline(RHI::gRhi->Cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, RHI::gRhi->Pipeline);
 
 	VkViewport viewport = {};
 	viewport.width = (float)m_uHwndSize[0];
 	viewport.height = (float)m_uHwndSize[1];
 	viewport.maxDepth = 1.0f;
-	vkCmdSetViewport(RHI::pVk->Cmd, 0, 1, &viewport);
+	vkCmdSetViewport(RHI::gRhi->Cmd, 0, 1, &viewport);
 
 	VkRect2D scissor = {};
 	scissor.extent = m_MainWndContext.SwapchainInfo.imageExtent;
-	vkCmdSetScissor(RHI::pVk->Cmd, 0, 1, &scissor);
+	vkCmdSetScissor(RHI::gRhi->Cmd, 0, 1, &scissor);
 
-	vkCmdDraw(RHI::pVk->Cmd, 3, 1, 0, 0);
+	vkCmdDraw(RHI::gRhi->Cmd, 3, 1, 0, 0);
 
-	vkCmdEndRenderPass(RHI::pVk->Cmd);
-	vkEndCommandBuffer(RHI::pVk->Cmd);
+	vkCmdEndRenderPass(RHI::gRhi->Cmd);
+	vkEndCommandBuffer(RHI::gRhi->Cmd);
 
 	// Submit
 	VkPipelineStageFlags stagesToWait[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
@@ -68,21 +68,21 @@ void CEditorApplication::Tick()
 	submitInfo.pWaitSemaphores = &m_MainWndContext.ImageSemaphore;
 	submitInfo.pWaitDstStageMask = stagesToWait;
 	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &RHI::pVk->Cmd;
+	submitInfo.pCommandBuffers = &RHI::gRhi->Cmd;
 	submitInfo.signalSemaphoreCount = 1;
-	submitInfo.pSignalSemaphores = &RHI::pVk->RenderSemaphore;
+	submitInfo.pSignalSemaphores = &RHI::gRhi->RenderSemaphore;
 
-	vkQueueSubmit(RHI::pVk->MainQueue, 1, &submitInfo, RHI::pVk->QueueFence);
+	vkQueueSubmit(RHI::gRhi->MainQueue, 1, &submitInfo, RHI::gRhi->QueueFence);
 
 	// Present
 	VkPresentInfoKHR presentInfo = { VK_STRUCTURE_TYPE_PRESENT_INFO_KHR };
 	presentInfo.waitSemaphoreCount = 1;
-	presentInfo.pWaitSemaphores = &RHI::pVk->RenderSemaphore;
+	presentInfo.pWaitSemaphores = &RHI::gRhi->RenderSemaphore;
 	presentInfo.swapchainCount = 1;
 	presentInfo.pSwapchains = &m_MainWndContext.Swapchain;
 	presentInfo.pImageIndices = &imageIndex;
 	
-	vkQueuePresentKHR(RHI::pVk->MainQueue, &presentInfo);
+	vkQueuePresentKHR(RHI::gRhi->MainQueue, &presentInfo);
 }
 
 LRESULT CALLBACK CEditorApplication::WndProc(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam)

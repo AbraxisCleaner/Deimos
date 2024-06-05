@@ -1,12 +1,13 @@
 #include "pch.h"
 #include "Engine/DebugLog.h"
 #include "Engine/FileIO.h"
-#include "Engine/RhiVulkan.h"
+#include "Engine/Rhi/RhiVulkan.h"
 
 #include <Windows.h>
 
 RHI::SRhiState _Vk = {};
-RHI::SRhiState *RHI::pVk = &_Vk;
+RHI::SRhiState *RHI::gRhi = &_Vk;
+RHI::SRhiState *pVk = &_Vk;
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -340,7 +341,7 @@ void RHI::Release()
 
 void RHI::WaitForRendering()
 {
-	vkWaitForFences(pVk->Device, 1, &pVk->QueueFence, VK_TRUE, (uint64)-1);
+	vkWaitForFences(pVk->Device, 1, &pVk->QueueFence, VK_TRUE, (uint64)5000000);
 	vkResetFences(pVk->Device, 1, &pVk->QueueFence);
 }
 
