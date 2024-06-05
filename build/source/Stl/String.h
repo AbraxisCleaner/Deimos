@@ -32,14 +32,12 @@ public:
 	}
 	TString(const T *Ptr) : TString(Ptr, TStrlen(Ptr)) {}
 
-	TString(TString &&Other)
-	{
-		m_Ptr = Other.m_Ptr;
-		m_uCap = Other.m_uCap;
+	TString(const TString &Other) {
 		m_uLength = Other.m_uLength;
-		Other.m_Ptr = (T *)TEmptyString<T>();
-		Other.m_uCap = 0;
-		Other.m_uLength = 0;
+		m_uCap = ALIGN16(m_uLength + 1);
+		m_Ptr = (T *)malloc(m_uCap * sizeof(T));
+		memset(m_Ptr, 0, m_uCap * sizeof(T));
+		memcpy(m_Ptr, Other.m_Ptr, m_uLength * sizeof(T));
 	}
 
 	~TString()
@@ -173,24 +171,79 @@ public:
 		}
 	}
 	inline void Insert(const T *Ptr, uint Where) { Insert(Ptr, TStrlen(Ptr), Where); }
+	inline void Insert(const T *Ptr, T *Where) { Insert(Ptr, TStrlen(Ptr), (uint)(Where - m_Ptr)); }
+
+	inline T *Find(const T Ch) {
+		for (auto i = 0; i != m_uLength; ++i) {
+			if (m_Ptr[i] == Ch)
+				return &m_Ptr[i];
+		}
+		return nullptr;
+	}
+	inline T *FindLast(const T Ch) {
+		for (auto i = m_uLength; i >= 0; --i) {
+			if (m_Ptr[i] == Ch)
+				return &m_Ptr[i];
+		}
+	}
+
+	// Returns (uint)-1 on failure.
+	inline uint GetIndexOf(const T Ch) {
+		for (auto i = 0; i != m_uLength; ++i) {
+			if (m_Ptr[i] == Ch)
+				return i;
+		}
+		return (uint)-1;
+	}
+	// Returns (uint)-1 on failure.
+	inline uint GetLastIndexOf(const T Ch) {
+		for (auto i = m_uLength; i >= 0; --i) {
+			if (m_Ptr[i] == Ch)
+				return i;
+		}
+		return (uint)-1;
+	}
 
 	inline void *Raw() { return m_Ptr; }
+	inline uint Length() { return m_uLength; }
+	inline uint Capacity() { return m_uCap; }
+
+	// -----------------------------------
+	// FilePath/Name stuff.
+	// -----------------------------------
+	inline T *GetFileExtension() { 
+		return FindLast('.'); 
+	}
+	
+	inline T *GetFileName() { 
+		auto ptr = FindLast('\\'); 
+		if (!ptr)
+			ptr = FindLast('/');
+		return (ptr) ? (ptr + 1) : m_Ptr; 
+	}
+
+	inline TString GetFilePath() {
+		TString dst = *this;
+		auto ptr = dst.GetFileName();
+		*ptr = 0;
+		return dst;
+	}
+
+	// -----------------------------------
+	// Operators.
+	// -----------------------------------
 	inline operator T *() { return m_Ptr; }
 	inline operator const T *() { return (const T *)m_Ptr; }
-	
 	inline T &operator [](uint Index) { return m_Ptr[Index]; }
 	
 	inline bool operator ==(const T *Other) { return TStrcmp(m_Ptr, Other); }
 	inline bool operator ==(const TString &Other) { return TStrcmp(m_Ptr, Other.m_Ptr); }
-
 	inline void operator +=(const T *Str) { Append(Str); }
 
-private:
+protected:
 	T *m_Ptr;
 	uint m_uCap;
 	uint m_uLength;
 };
-
-typedef TString<TCHAR> CString;
 
 #endif // _STL_STRING_H_
