@@ -9,9 +9,9 @@ workspace "Solution"
     platforms { "Win64" }
     targetdir "bin/%{cfg.buildcfg}"
     objdir "bin/obj/%{cfg.buildcfg}"
-    files { "source/**.h", "source/Stl/**", "source/pch.cpp", "source/vendor/volk.c" }
+    files { "source/**.h", "source/Stl/**", "source/pch.cpp" }
     includedirs { "source", "source/vendor" }
-    libdirs { "source/vendor" }
+    libdirs { "source/vendor", "bin/%{cfg.buildcfg}" }
 
     filter "platforms:Win64"
         system "Windows"
@@ -31,12 +31,20 @@ workspace "Solution"
         defines { "NDEBUG" }
         optimize "On"
 
-project "Editor"
-    files { "source/Engine/**", "source/Editor/**" }
+project "Engine"
+    files { "source/Engine/Private/*.cpp" }
     pchheader "pch.h"
-    filter "configurations:Development"
-        kind "ConsoleApp"
-    filter "configurations:Debug"
-        kind "ConsoleApp"
-    filter "configurations:Release"
-        kind "WindowedApp"
+    kind "StaticLib"
+
+project "Editor"
+    dependson { "Engine", "RhiVulkan" }
+    files { "source/Editor/Private/*.cpp" }
+    pchheader "pch.h"
+    kind "ConsoleApp"
+
+project "Game"
+    dependson { "RhiVulkan", "Engine" }
+    links { "Engine" }
+    files { "source/Game/Private/*.cpp" }
+    pchheader "pch.h"
+    kind "ConsoleApp"
