@@ -7,22 +7,17 @@
 #	undef LoadLibrary
 #endif
 
-struct SFileBlob
+struct fileBlob_t
 {
 	size_t Size;
 	void *pBuffer;
-
-	inline void Release() {
-		if (pBuffer)
-			free(pBuffer);
-		ZeroThis();
-	}
 };
-bool ReadEntireFile(const TCHAR *Path, SFileBlob *pBlob);
+bool ReadEntireFile(const TCHAR *Path, fileBlob_t *pBlob);
+void ReleaseFileBlob(fileBlob_t *pBlob);
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-struct SMappedFile
+struct mappedFile_t
 {
 	void *Handle;
 	size_t Size;
@@ -30,21 +25,21 @@ struct SMappedFile
 
 	void Release();
 };
-bool MapFile(const TCHAR *Path, SMappedFile *pOut);
-void UnmapFile(SMappedFile *pFile);
+bool MapFile(const TCHAR *Path, mappedFile_t *pOut);
+void UnmapFile(mappedFile_t *pFile);
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // Named after the Win32 name for a DLL because SDLL is too small and stinky.
-struct SSharedLib
+struct sharedLib_t
 {
-	void *Handle;
-	size_t LastWrite;
-	TString<TCHAR> BaseFileName; // Name of the DLL that has been copied.
+	void *handle;
+	size_t lastWrite;
+	TString<TCHAR> fileName; // Name of the DLL that has been copied.
 };
-bool LoadSharedLib(SSharedLib *pLib, TString<TCHAR> Path, bool bCopyFile);
-void ReleaseSharedLib(SSharedLib *pLib);
-bool IsSharedLibDirty(SSharedLib *pLib);
-void *LoadProc(SSharedLib pLib, const char *ProcName);
+bool LoadSharedLib(sharedLib_t *pLib, TString<TCHAR> path, bool bCopyFile);
+void ReleaseSharedLib(sharedLib_t *pLib);
+bool IsSharedLibDirty(sharedLib_t *pLib);
+void *LoadProc(sharedLib_t pLib, const char *procName);
 
 #endif // _ENGINE_FILESYSTEM_H_
